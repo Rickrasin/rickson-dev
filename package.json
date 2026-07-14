@@ -6,7 +6,10 @@
     "dev": "next dev -H 0.0.0.0",
     "build": "next build",
     "start": "next start -H 0.0.0.0",
-    "typecheck": "tsc --noEmit"
+    "lint": "eslint . --max-warnings=0",
+    "test": "node --test tests/portfolio-integrity.test.mjs",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run lint && npm test && npm run typecheck && npm run build"
   },
   "dependencies": {
     "next": "^16.2.7",
@@ -17,6 +20,8 @@
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.2.10",
     "typescript": "^5.9.3"
   },
   "overrides": {

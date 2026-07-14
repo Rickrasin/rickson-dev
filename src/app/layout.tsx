@@ -1,15 +1,35 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { headers } from "next/headers";
+import { SITE } from "@/shared/config/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE.url),
   title: {
-    default: "Rickson de Oliveira | Desenvolvimento Full Stack",
-    template: "%s | Rickson.dev"
+    default: SITE.title,
+    template: `%s | ${SITE.name}`
   },
-  description:
-    "Sistemas web sob medida por Rickson de Oliveira para organizar operações, centralizar informações e reduzir trabalho manual.",
+  description: SITE.description,
+  applicationName: SITE.name,
+  authors: [{ name: SITE.author, url: SITE.url }],
+  creator: SITE.author,
+  publisher: SITE.name,
+  alternates: {
+    canonical: "/"
+  },
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    url: "/",
+    siteName: SITE.name,
+    title: SITE.title,
+    description: SITE.description
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE.title,
+    description: SITE.description
+  },
   icons: {
     icon: [
       { url: "/assets/favicon.ico", sizes: "any" },
@@ -21,7 +41,11 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   width: "device-width",
-  initialScale: 1
+  initialScale: 1,
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#020202" },
+    { media: "(prefers-color-scheme: light)", color: "#f9faf6" }
+  ]
 };
 
 const preferenceScript = `
@@ -34,17 +58,14 @@ const preferenceScript = `
   } catch {}
 `;
 
-export default async function RootLayout({
+export default function RootLayout({
   children
 }: Readonly<{ children: ReactNode }>) {
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
-
   return (
     <html data-theme="dark" lang="pt-BR" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{ __html: preferenceScript }}
-          nonce={nonce}
           suppressHydrationWarning
         />
       </head>

@@ -6,8 +6,11 @@ Portfolio pessoal do Rickson de Oliveira, recriado em Next.js a partir do protó
 
 ```bash
 npm run dev
+npm run lint
+npm test
 npm run build
 npm run typecheck
+npm run verify
 ```
 
 ## Estrutura

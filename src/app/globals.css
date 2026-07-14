@@ -880,19 +880,24 @@ h1 {
 }
 
 [data-reveal] {
-  transform: translateY(28px);
-  opacity: 0;
+  transform: translateY(0);
+  opacity: 1;
   transition: opacity 760ms var(--ease), transform 760ms var(--ease);
 }
 
-[data-reveal].is-visible {
+:root.is-runtime-ready [data-reveal] {
+  transform: translateY(28px);
+  opacity: 0;
+}
+
+:root.is-runtime-ready [data-reveal].is-visible {
   transform: translateY(0);
   opacity: 1;
 }
 
-[data-reveal].is-visible:nth-child(2) { transition-delay: 70ms; }
-[data-reveal].is-visible:nth-child(3) { transition-delay: 120ms; }
-[data-reveal].is-visible:nth-child(4) { transition-delay: 170ms; }
+:root.is-runtime-ready [data-reveal].is-visible:nth-child(2) { transition-delay: 70ms; }
+:root.is-runtime-ready [data-reveal].is-visible:nth-child(3) { transition-delay: 120ms; }
+:root.is-runtime-ready [data-reveal].is-visible:nth-child(4) { transition-delay: 170ms; }
 
 .magnetic { will-change: transform; }
 
@@ -966,6 +971,12 @@ h1 {
   .hero-actions { flex-direction: column; }
   .button { width: 100%; }
   .sigil-anchor { min-height: 310px; margin-top: 10px; }
+  .hero-copy .hero-kicker {
+    display: flex;
+    max-width: 100%;
+    line-height: 1.45;
+    white-space: normal;
+  }
   .scroll-cue { display: none; }
   .section-lead,
   .section-lead.split,
@@ -2568,6 +2579,35 @@ body {
   grid-row: 1 / 3;
 }
 
+.case-media--silver3 {
+  grid-template-columns: minmax(0, 2.2fr) repeat(2, minmax(0, 0.55fr));
+  grid-template-rows: minmax(0, 176px);
+}
+
+.case-media--silver3 img,
+.case-media--silver3 img:first-child {
+  grid-row: auto;
+  height: 176px;
+  aspect-ratio: auto;
+}
+
+.case-media--silver3 .case-media__web {
+  object-fit: cover;
+  object-position: left top;
+}
+
+.case-media--silver3 .case-media__phone {
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.case-platforms {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted-strong);
+  letter-spacing: 0.04em;
+}
+
 .case-row--featured small {
   grid-column: 2 / 3;
   grid-row: 2;
@@ -4044,6 +4084,27 @@ h1 {
 
   .case-row.case-row--featured > .case-media img:first-child {
     grid-row: 1 / 3;
+  }
+
+  .case-row.case-row--featured > .case-media--silver3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto minmax(260px, 72vw);
+    min-height: 0;
+  }
+
+  .case-row.case-row--featured > .case-media--silver3 .case-media__web {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+
+  .case-row.case-row--featured > .case-media--silver3 .case-media__phone {
+    grid-row: 2;
+    height: 100%;
+    min-height: 260px;
+    object-fit: contain;
   }
 }
 /* End featured project media mobile repair */

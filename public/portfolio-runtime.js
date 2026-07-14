@@ -54,7 +54,8 @@ const copy = {
     "cases.body": "Sistemas, estudos e soluções que mostram minha forma de pensar, organizar processos e transformar ideias em algo funcional.",
     "cases.cta": "Conversar sobre um projeto",
     "cases.one.title": "Silver3",
-    "cases.one.body": "Sistema de tickets e atendimento criado para organizar chamados de TI, clientes, ativos e solicitações em um só lugar. A proposta foi substituir informações espalhadas por um fluxo mais claro, onde cada pedido pode ser registrado, acompanhado e resolvido com mais controle.",
+    "cases.one.body": "Plataforma de atendimento criada para organizar chamados de TI, clientes e operações em um só fluxo. Além do sistema web, o Silver3 agora possui um aplicativo para Android e iOS com painel, chamados, alertas, notificações e suporte a trabalho offline.",
+    "cases.one.meta": "Plataforma web · Aplicativo Android e iOS",
     "cases.two.title": "Tifuns",
     "cases.two.body": "Portal editorial sobre games, animes e e-sports, criado para publicar notícias, guias e destaques em uma experiência web escura, responsiva e direta de navegar.",
     "cases.three.title": "Rickson.dev",
@@ -104,7 +105,8 @@ const copy = {
     "cases.body": "Systems, studies, and solutions that show how I think, organize processes, and turn ideas into something functional.",
     "cases.cta": "Talk about a project",
     "cases.one.title": "Silver3",
-    "cases.one.body": "A ticketing and support system built to organize IT requests, clients, assets, and service workflows in one place. The goal was to replace scattered information with a clearer flow, where each request can be registered, tracked, and resolved with more control.",
+    "cases.one.body": "A support platform built to organize IT requests, clients, and operations in one flow. Alongside the web system, Silver3 now includes an Android and iOS app with dashboards, tickets, alerts, notifications, and offline support.",
+    "cases.one.meta": "Web platform · Android and iOS app",
     "cases.two.title": "Tifuns",
     "cases.two.body": "An editorial portal about games, anime, and e-sports, built to publish news, guides, and highlights in a dark, responsive, easy-to-navigate web experience.",
     "cases.three.title": "Rickson.dev",
@@ -152,8 +154,6 @@ const sectionEffects = {
 
 const presetColorA = new THREE.Color();
 const presetColorB = new THREE.Color();
-const presetColorC = new THREE.Color();
-const presetColorD = new THREE.Color();
 
 const scrollState = {
   y: window.scrollY || 0,
@@ -388,12 +388,6 @@ function buildSigil() {
     opacity: 0.96,
     blending: THREE.AdditiveBlending,
   });
-  const innerMaterial = new THREE.LineBasicMaterial({
-    color: "#384A55",
-    transparent: true,
-    opacity: 0.48,
-    blending: THREE.AdditiveBlending,
-  });
   const auraMaterial = new THREE.MeshBasicMaterial({
     color: "#D1A13A",
     map: glowTexture,
@@ -405,7 +399,6 @@ function buildSigil() {
 
   const fill = new THREE.Mesh(createTriangleFillGeometry(), fillMaterial);
   const outer = new THREE.Line(createTriangleLineGeometry(), outerMaterial);
-  const inner = new THREE.Line(createTriangleLineGeometry(1.24, 1.12, 0.06), innerMaterial);
   const aura = new THREE.Mesh(new THREE.PlaneGeometry(3.55, 3.55), auraMaterial);
   aura.position.z = -0.32;
 
@@ -815,9 +808,20 @@ function updateActiveSection() {
   root.dataset.section = active;
   updateFxVariables();
 
-  chapterLinks.forEach((link) => link.classList.toggle("is-active", link.dataset.sectionTarget === active));
+  updateChapterLinks(active);
 }
 
+function updateChapterLinks(activeSection) {
+  chapterLinks.forEach((link) => {
+    const isActive = link.dataset.sectionTarget === activeSection;
+    link.classList.toggle("is-active", isActive);
+    if (isActive) {
+      link.setAttribute("aria-current", "location");
+    } else {
+      link.removeAttribute("aria-current");
+    }
+  });
+}
 
 function forceSectionState(sectionId) {
   if (!sectionId || !sectionEffects[sectionId]) return;
@@ -827,7 +831,7 @@ function forceSectionState(sectionId) {
   scrollState.fxMix = 0;
   root.dataset.section = sectionId;
   updateFxVariables();
-  chapterLinks.forEach((link) => link.classList.toggle("is-active", link.dataset.sectionTarget === sectionId));
+  updateChapterLinks(sectionId);
 }
 
 function getCurrentSectionId() {
@@ -844,7 +848,7 @@ function setDirectedSectionState(fromSection, toSection, mix) {
   scrollState.fxMix = clamp(mix);
   root.dataset.section = target;
   updateFxVariables();
-  chapterLinks.forEach((link) => link.classList.toggle("is-active", link.dataset.sectionTarget === target));
+  updateChapterLinks(target);
 }
 
 function stopNavigationMotion({ sync = true } = {}) {
@@ -1236,8 +1240,19 @@ function resize() {
   updateScroll();
 }
 
+let lastAnimationFrame = 0;
+
 function animate(now = 0) {
-  const time = now * 0.001;
+  const reducedMotion = Boolean(reducedMotionQuery?.matches);
+  const targetFrameInterval = window.innerWidth <= 760 ? 1000 / 30 : 1000 / 45;
+
+  if (!reducedMotion && now - lastAnimationFrame < targetFrameInterval) {
+    requestAnimationFrame(animate);
+    return;
+  }
+
+  lastAnimationFrame = now;
+  const time = reducedMotion ? 0 : now * 0.001;
   pointer.x = lerp(pointer.x, pointer.tx, 0.075);
   pointer.y = lerp(pointer.y, pointer.ty, 0.075);
 
@@ -1248,7 +1263,11 @@ function animate(now = 0) {
   updateRings(time);
   updateSigil(time);
   renderer.render(scene, camera);
-  requestAnimationFrame(animate);
+  if (reducedMotion) {
+    window.setTimeout(() => requestAnimationFrame(animate), 250);
+  } else {
+    requestAnimationFrame(animate);
+  }
 }
 
 function boot() {
@@ -1256,6 +1275,7 @@ function boot() {
   buildRings();
   buildTrails();
   buildParticles();
+  root.classList.add("is-runtime-ready");
   setupEvents();
   setupRevealObserver();
   setupMagneticMotion();

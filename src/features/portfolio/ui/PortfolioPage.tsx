@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { PortfolioRuntime } from "./PortfolioRuntime";
 
@@ -114,7 +115,14 @@ function SideRail() {
   return (
     <aside aria-label="Navegação principal" className="side-rail">
       <a aria-label="Rickson Dev" className="rail-brand" href="#hero">
-        <img alt="" src="/assets/rickson-logo.svg" />
+        <Image
+          alt=""
+          height={535}
+          priority
+          sizes="48px"
+          src="/assets/rickson-logo.svg"
+          width={759}
+        />
       </a>
       <nav className="rail-nav">
         <a className="is-active" data-section-target="hero" href="#hero">
@@ -280,7 +288,7 @@ function WorkflowSection() {
   return (
     <section className="method shell" data-section="method" id="method">
       <div className="section-lead" data-reveal>
-        <span data-i18n="services.label">// 02. Fluxo</span>
+        <span data-i18n="services.label">{"// 02. Fluxo"}</span>
         <h2 data-i18n="services.title">Meu fluxo de trabalho.</h2>
         <p data-i18n="services.body">
           Trabalho em etapas simples: entendo o problema, organizo o fluxo, construo uma primeira
@@ -306,7 +314,7 @@ function ProjectsSection() {
     <section className="projects shell" data-section="projects" id="projects">
       <div className="section-lead split" data-reveal>
         <div>
-          <span data-i18n="cases.label">// 03. Casos</span>
+          <span data-i18n="cases.label">{"// 03. Casos"}</span>
           <h2 data-i18n="cases.title">Projetos criados para resolver problemas reais.</h2>
           <p data-i18n="cases.body">
             Sistemas, estudos e soluções que mostram minha forma de pensar, organizar processos e
@@ -325,27 +333,42 @@ function ProjectsSection() {
           <div>
             <h3 data-i18n="cases.one.title">Silver3</h3>
             <p data-i18n="cases.one.body">
-              Sistema de tickets e atendimento criado para organizar chamados de TI, clientes,
-              ativos e solicitações em um só lugar. A proposta foi substituir informações espalhadas
-              por um fluxo mais claro, onde cada pedido pode ser registrado, acompanhado e resolvido
-              com mais controle.
+              Plataforma de atendimento criada para organizar chamados de TI, clientes e operações
+              em um só fluxo. Além do sistema web, o Silver3 agora possui um aplicativo para Android
+              e iOS com painel, chamados, alertas, notificações e suporte a trabalho offline.
             </p>
+            <small className="case-platforms" data-i18n="cases.one.meta">
+              Plataforma web · Aplicativo Android e iOS
+            </small>
           </div>
-          <div aria-label="Prévia sanitizada do Silver3" className="case-media">
-            <img
+          <div
+            aria-label="Prévias sanitizadas das versões web e mobile do Silver3"
+            className="case-media case-media--silver3"
+            role="group"
+          >
+            <Image
+              className="case-media__web"
               alt="Painel sanitizado do Silver3"
-              loading="lazy"
+              height={428}
+              sizes="(max-width: 760px) 84vw, (max-width: 1120px) 44vw, 24vw"
               src="/assets/cases/silver3/silver3-dashboard-safe-thumb.png"
+              width={760}
             />
-            <img
-              alt="Formulário de ticket sanitizado do Silver3"
-              loading="lazy"
-              src="/assets/cases/silver3/silver3-ticket-safe-thumb.png"
+            <Image
+              className="case-media__phone"
+              alt="Painel do aplicativo Silver3 com dados fictícios"
+              height={900}
+              sizes="(max-width: 760px) 40vw, 8vw"
+              src="/assets/cases/silver3/silver3-mobile-dashboard-safe.png"
+              width={430}
             />
-            <img
-              alt="Tela de preferências sanitizada do Silver3"
-              loading="lazy"
-              src="/assets/cases/silver3/silver3-preferences-safe-thumb.png"
+            <Image
+              className="case-media__phone"
+              alt="Lista de chamados do aplicativo Silver3 com dados fictícios"
+              height={900}
+              sizes="(max-width: 760px) 40vw, 8vw"
+              src="/assets/cases/silver3/silver3-mobile-tickets-safe.png"
+              width={430}
             />
           </div>
           <SpriteIcon id="icon-arrow" />
@@ -366,10 +389,28 @@ function ProjectsSection() {
               e destaques em uma experiência web escura, responsiva e direta de navegar.
             </p>
           </div>
-          <div aria-label="Prévia do site Tifuns" className="case-media">
-            <img alt="Página inicial do Tifuns" loading="lazy" src="/assets/cases/tifuns/tifuns-home.png" />
-            <img alt="Versão mobile do Tifuns" loading="lazy" src="/assets/cases/tifuns/tifuns-mobile.png" />
-            <img alt="Lista de conteúdos do Tifuns" loading="lazy" src="/assets/cases/tifuns/tifuns-section.png" />
+          <div aria-label="Prévia do site Tifuns" className="case-media" role="group">
+            <Image
+              alt="Página inicial do Tifuns"
+              height={900}
+              sizes="(max-width: 900px) 84vw, 36vw"
+              src="/assets/cases/tifuns/tifuns-home.png"
+              width={1440}
+            />
+            <Image
+              alt="Versão mobile do Tifuns"
+              height={1688}
+              sizes="(max-width: 900px) 84vw, 28vw"
+              src="/assets/cases/tifuns/tifuns-mobile.png"
+              width={780}
+            />
+            <Image
+              alt="Lista de conteúdos do Tifuns"
+              height={900}
+              sizes="(max-width: 900px) 84vw, 36vw"
+              src="/assets/cases/tifuns/tifuns-section.png"
+              width={1440}
+            />
           </div>
           <SpriteIcon id="icon-arrow" />
         </a>
@@ -396,12 +437,18 @@ function AboutSection() {
   return (
     <section className="about shell" data-section="about" id="about">
       <div className="section-lead about-lead" data-reveal>
-        <span data-i18n="about.label">// 04. Sobre</span>
+        <span data-i18n="about.label">{"// 04. Sobre"}</span>
       </div>
 
       <div className="about-grid" data-reveal>
         <figure className="about-photo">
-          <img alt="Foto de Rickson de Oliveira" src="/assets/rickson-about.png" />
+          <Image
+            alt="Foto de Rickson de Oliveira"
+            height={1402}
+            sizes="(max-width: 900px) 86vw, 34vw"
+            src="/assets/rickson-about.webp"
+            width={1122}
+          />
         </figure>
         <div className="about-copy">
           <h2 data-i18n="about.title">Olá, sou o Rickson, desenvolvedor full stack.</h2>
@@ -429,7 +476,7 @@ function ContactSection() {
     <section className="contact shell" data-section="contact" id="contact">
       <div className="contact-grid" data-reveal>
         <div>
-          <span data-i18n="contact.label">// 05. Contato</span>
+          <span data-i18n="contact.label">{"// 05. Contato"}</span>
           <h2 data-i18n="contact.title">Vamos tirar sua ideia do papel?</h2>
           <p className="contact-copy" data-i18n="contact.body">
             Se você tem algum projeto em mente, um processo lento ou uma rotina manual, posso te
