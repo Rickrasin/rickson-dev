@@ -290,7 +290,6 @@ export function Silver3CasePage() {
                 priority
                 sizes="(max-width: 760px) 88vw, (max-width: 1120px) 76vw, 38vw"
                 src={galleryImages[0].src}
-                unoptimized
                 width={galleryImages[0].width}
               />
             </figure>
@@ -298,10 +297,8 @@ export function Silver3CasePage() {
               <Image
                 alt={language === "en" ? "Mobile ticket management app developed for Silver3 with fictional data" : "Aplicativo móvel de gestão de chamados desenvolvido para a Silver3 com dados fictícios"}
                 height={galleryImages[2].height}
-                priority
                 sizes="(max-width: 760px) 28vw, (max-width: 1120px) 20vw, 9vw"
                 src={galleryImages[2].src}
-                unoptimized
                 width={galleryImages[2].width}
               />
             </figure>
@@ -336,7 +333,7 @@ export function Silver3CasePage() {
           </div>
           <figure className={styles.dashboardPreview} data-reveal>
             <div className={styles.previewChrome}><span /><span /><span /><small>silver3 / support</small></div>
-            <Image alt={language === "en" ? "Ticket detail in the platform developed for Silver3 with fictional data" : "Detalhe de chamado na plataforma desenvolvida para a Silver3 com dados fictícios"} height={galleryImages[0].height} sizes="(max-width: 760px) 92vw, 78vw" src={galleryImages[0].src} unoptimized width={galleryImages[0].width} />
+            <Image alt={language === "en" ? "Ticket detail in the platform developed for Silver3 with fictional data" : "Detalhe de chamado na plataforma desenvolvida para a Silver3 com dados fictícios"} height={galleryImages[0].height} sizes="(max-width: 760px) 92vw, 78vw" src={galleryImages[0].src} width={galleryImages[0].width} />
           </figure>
         </section>
 
@@ -354,7 +351,7 @@ export function Silver3CasePage() {
           <div className={styles.gallery}>
             {galleryImages.slice(1).map((image, index) => (
               <figure className={image.kind === "mobile" ? styles.mobilePreview : styles.webPreview} data-reveal key={image.src}>
-                <Image alt="" height={image.height} sizes={image.kind === "mobile" ? "(max-width: 760px) 68vw, 24vw" : "(max-width: 760px) 92vw, 54vw"} src={image.src} unoptimized width={image.width} />
+                <Image alt="" height={image.height} sizes={image.kind === "mobile" ? "(max-width: 760px) 68vw, 24vw" : "(max-width: 760px) 92vw, 54vw"} src={image.src} width={image.width} />
                 <figcaption>{index === 0 ? "WEB / DASHBOARD" : `APP / 0${index}`}</figcaption>
               </figure>
             ))}
@@ -399,8 +396,8 @@ export function Silver3CasePage() {
         onReady={() => {
           window.dispatchEvent(new Event("silver3-runtime-mount"));
         }}
-        src="/silver3-case-runtime.js?v=20260714-product-hero-2"
-        strategy="afterInteractive"
+        src="/silver3-case-runtime.js?v=20260810-performance-1"
+        strategy="lazyOnload"
         type="module"
       />
     </>

@@ -1,4 +1,4 @@
-import * as THREE from "./assets/three.module.js";
+import * as THREE from "./assets/three.module.min.js";
 
 function bootSilver3Runtime() {
 const canvas = document.getElementById("silver3-case-canvas");
@@ -8,6 +8,12 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
 
   const root = document.documentElement;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const limitedHardware = Boolean(
+    navigator.connection?.saveData ||
+    (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+    (navigator.deviceMemory && navigator.deviceMemory <= 4)
+  );
+  const pixelRatioCap = () => window.innerWidth < 760 || limitedHardware ? 1 : 1.25;
   const renderer = new THREE.WebGLRenderer({
     canvas,
     alpha: true,
@@ -15,7 +21,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     powerPreference: "high-performance"
   });
   renderer.setClearColor(0x000000, 0);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, pixelRatioCap()));
   if ("outputColorSpace" in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
 
   const scene = new THREE.Scene();
@@ -226,8 +232,13 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   let pointerX = 0;
   let pointerY = 0;
   let lastTime = performance.now();
+  let lastRenderedAt = 0;
   let frameId = 0;
+  let animationTimer = 0;
+  let scrollFrame = 0;
+  let resizeFrame = 0;
   let disposed = false;
+  let visualsPaused = document.hidden || root.classList.contains("is-route-transitioning");
 
   const sectionPalette = {
     "case-intro": ["238 187 70", "95 143 160", "79 140 121"],
@@ -288,6 +299,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   function resize() {
     const width = window.innerWidth;
     const height = window.innerHeight;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, pixelRatioCap()));
     renderer.setSize(width, height, false);
     camera.aspect = width / Math.max(height, 1);
     camera.updateProjectionMatrix();
@@ -398,13 +410,69 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
       dispose();
       return;
     }
+    if (visualsPaused || document.hidden) return;
+
+    const targetFps = limitedHardware
+      ? (window.innerWidth < 760 ? 18 : 24)
+      : (window.innerWidth < 760 ? 24 : 30);
+    if (!reducedMotion && now - lastRenderedAt < 1000 / targetFps) {
+      frameId = requestAnimationFrame(animate);
+      return;
+    }
+
     const delta = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
+    lastRenderedAt = now;
     const motionDelta = reducedMotion ? Math.min(delta, 0.008) : delta;
     updateThemeColors(delta);
     updateRune(now / 1000, motionDelta);
     renderer.render(scene, camera);
+    if (reducedMotion) {
+      animationTimer = window.setTimeout(() => {
+        if (!visualsPaused && !document.hidden && !disposed) {
+          frameId = requestAnimationFrame(animate);
+        }
+      }, 250);
+    } else {
+      frameId = requestAnimationFrame(animate);
+    }
+  }
+
+  function scheduleActiveSectionUpdate() {
+    if (scrollFrame || disposed) return;
+    scrollFrame = requestAnimationFrame(() => {
+      scrollFrame = 0;
+      updateActiveSection();
+    });
+  }
+
+  function scheduleResize() {
+    if (resizeFrame || disposed) return;
+    resizeFrame = requestAnimationFrame(() => {
+      resizeFrame = 0;
+      resize();
+    });
+  }
+
+  function pauseVisuals() {
+    visualsPaused = true;
+    cancelAnimationFrame(frameId);
+    window.clearTimeout(animationTimer);
+    frameId = 0;
+    animationTimer = 0;
+  }
+
+  function resumeVisuals() {
+    if (disposed || !visualsPaused || document.hidden) return;
+    visualsPaused = false;
+    lastTime = performance.now();
+    lastRenderedAt = 0;
     frameId = requestAnimationFrame(animate);
+  }
+
+  function handleVisibilityChange() {
+    if (document.hidden) pauseVisuals();
+    else resumeVisuals();
   }
 
   const revealObserver = new IntersectionObserver((entries) => {
@@ -439,9 +507,15 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     if (disposed) return;
     disposed = true;
     cancelAnimationFrame(frameId);
-    window.removeEventListener("resize", resize);
-    window.removeEventListener("scroll", updateActiveSection);
+    cancelAnimationFrame(scrollFrame);
+    cancelAnimationFrame(resizeFrame);
+    window.clearTimeout(animationTimer);
+    window.removeEventListener("resize", scheduleResize);
+    window.removeEventListener("scroll", scheduleActiveSectionUpdate);
     window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("portfolio-visuals-pause", pauseVisuals);
+    window.removeEventListener("portfolio-visuals-resume", resumeVisuals);
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
     revealObserver.disconnect();
     magneticCleanups.forEach((cleanup) => cleanup());
     scene.traverse((object) => {
@@ -457,10 +531,13 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   resize();
   setSection("case-intro");
   updateActiveSection();
-  window.addEventListener("resize", resize, { passive: true });
-  window.addEventListener("scroll", updateActiveSection, { passive: true });
+  window.addEventListener("resize", scheduleResize, { passive: true });
+  window.addEventListener("scroll", scheduleActiveSectionUpdate, { passive: true });
   window.addEventListener("pointermove", onPointerMove, { passive: true });
-  frameId = requestAnimationFrame(animate);
+  window.addEventListener("portfolio-visuals-pause", pauseVisuals);
+  window.addEventListener("portfolio-visuals-resume", resumeVisuals);
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  if (!visualsPaused) frameId = requestAnimationFrame(animate);
 }
 }
 

@@ -356,7 +356,6 @@ function ProjectsSection() {
               height={1080}
               sizes="(max-width: 760px) 82vw, (max-width: 1120px) 70vw, 44vw"
               src="/assets/cases/silver3/silver3-web-ticket-detail-clean-1920x1080.png"
-              unoptimized
               width={1920}
             />
             <Image
@@ -365,7 +364,6 @@ function ProjectsSection() {
               height={2856}
               sizes="(max-width: 760px) 24vw, (max-width: 1120px) 20vw, 11vw"
               src="/assets/cases/silver3/silver3-app-1280x2856.png"
-              unoptimized
               width={1280}
             />
           </div>

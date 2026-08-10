@@ -1,4 +1,4 @@
-import * as THREE from "./assets/three.module.js";
+import * as THREE from "./assets/three.module.min.js";
 
 function bootPortfolioRuntime() {
 const root = document.documentElement;
@@ -21,7 +21,10 @@ let textScrambleToken = 0;
 let revealObserver = null;
 let animationFrame = 0;
 let animationTimer = 0;
+let scrollUpdateFrame = 0;
+let resizeFrame = 0;
 let disposed = false;
+let visualsPaused = document.hidden || root.classList.contains("is-route-transitioning");
 
 const TAU = Math.PI * 2;
 const clamp = (value, min = 0, max = 1) => Math.min(Math.max(value, min), max);
@@ -198,6 +201,7 @@ const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
 const viewport = { width: 1, height: 1 };
 const dummy = new THREE.Object3D();
 const vector = new THREE.Vector3();
+const stageTarget = new THREE.Vector3();
 const colorA = new THREE.Color();
 const colorB = new THREE.Color();
 const currentMoodCache = {
@@ -207,6 +211,7 @@ const currentMoodCache = {
   energy: 1,
   theme: "dark",
 };
+let lastFxSignature = "";
 
 const renderer = new THREE.WebGLRenderer({
   canvas,
@@ -214,11 +219,16 @@ const renderer = new THREE.WebGLRenderer({
   antialias: true,
   powerPreference: "high-performance",
 });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
 renderer.setClearColor(0x000000, 0);
 if ("outputColorSpace" in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const reducedMotionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+const limitedHardware = Boolean(
+  navigator.connection?.saveData ||
+  (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+  (navigator.deviceMemory && navigator.deviceMemory <= 4)
+);
 const motionProfile = {
   particleStep: 1,
   emberStep: 1,
@@ -233,7 +243,7 @@ const motionProfile = {
   wobble: 1,
   speed: 1,
   scale: 1,
-  pixelRatioCap: 2,
+  pixelRatioCap: 1.25,
 };
 
 function updateMotionProfile() {
@@ -254,7 +264,7 @@ function updateMotionProfile() {
         wobble: 0.58,
         speed: 0.72,
         scale: 0.88,
-        pixelRatioCap: 1.5,
+        pixelRatioCap: 1,
       }
     : {
         particleStep: 1,
@@ -270,7 +280,7 @@ function updateMotionProfile() {
         wobble: 1,
         speed: 1,
         scale: 1,
-        pixelRatioCap: 2,
+        pixelRatioCap: 1.25,
       };
 
   if (reduced) {
@@ -287,7 +297,18 @@ function updateMotionProfile() {
     next.wobble *= 0.24;
     next.speed *= 0.35;
     next.scale *= 0.82;
-    next.pixelRatioCap = Math.min(next.pixelRatioCap, 1.25);
+    next.pixelRatioCap = 1;
+  } else if (limitedHardware) {
+    next.particleStep = Math.max(next.particleStep, 2);
+    next.emberStep = Math.max(next.emberStep, 2);
+    next.shardStep = Math.max(next.shardStep, 2);
+    next.particleOpacity *= 0.82;
+    next.emberOpacity *= 0.72;
+    next.shardOpacity *= 0.76;
+    next.pointer *= 0.62;
+    next.wobble *= 0.72;
+    next.speed *= 0.82;
+    next.pixelRatioCap = 1;
   }
 
   Object.assign(motionProfile, next);
@@ -348,9 +369,9 @@ function createParticleData(count, offset) {
   }));
 }
 
-const particleData = createParticleData(560, 4);
-const emberData = createParticleData(220, 800);
-const shardData = createParticleData(88, 1300);
+const particleData = createParticleData(320, 4);
+const emberData = createParticleData(96, 800);
+const shardData = createParticleData(40, 1300);
 
 function createInstancedPlanes(count, opacity, scale = 1) {
   const geometry = new THREE.PlaneGeometry(scale, scale);
@@ -433,7 +454,7 @@ function createCircleLine(radius, segments = 150) {
 }
 
 function buildRings() {
-  rings = Array.from({ length: 7 }, (_, index) => {
+  rings = Array.from({ length: 6 }, (_, index) => {
     const material = new THREE.LineBasicMaterial({
       color: index % 2 ? "#384A55" : "#EEBB46",
       transparent: true,
@@ -453,7 +474,7 @@ function buildRings() {
 }
 
 function buildTrails() {
-  trails = Array.from({ length: 18 }, (_, index) => {
+  trails = Array.from({ length: 12 }, (_, index) => {
     const radius = 0.9 + seeded(index + 60) * 1.65;
     const arc = 0.18 + seeded(index + 81) * 0.44;
     const start = seeded(index + 102) * TAU;
@@ -504,12 +525,19 @@ function updateViewport() {
   viewport.width = viewport.height * camera.aspect;
 }
 
-function screenToWorld(x, y, z = 0) {
+function screenToWorld(x, y, z = 0, target = stageTarget) {
   vector.set((x / window.innerWidth) * 2 - 1, -(y / window.innerHeight) * 2 + 1, 0.5);
   vector.unproject(camera);
   const direction = vector.sub(camera.position).normalize();
   const distance = (z - camera.position.z) / direction.z;
-  return camera.position.clone().add(direction.multiplyScalar(distance));
+  return target.copy(camera.position).add(direction.multiplyScalar(distance));
+}
+
+function updateStageTarget() {
+  const rect = stage?.getBoundingClientRect();
+  const centerX = rect ? rect.left + rect.width / 2 : window.innerWidth * 0.62;
+  const centerY = rect ? rect.top + rect.height / 2 : window.innerHeight * 0.45;
+  screenToWorld(clamp(centerX, 0, window.innerWidth), clamp(centerY, 0, window.innerHeight), 0.18, stageTarget);
 }
 
 function themeName() {
@@ -545,10 +573,14 @@ function applyThemeBlending(material, theme) {
     material.needsUpdate = true;
   }
 }
-function updateFxVariables() {
+function updateFxVariables(force = false) {
   const from = sectionEffects[scrollState.fxFrom] || sectionEffects.hero;
   const to = sectionEffects[scrollState.fxTo] || sectionEffects.hero;
-  const t = smoothstep(0, 1, scrollState.fxMix);
+  const rawT = smoothstep(0, 1, scrollState.fxMix);
+  const t = Math.round(rawT * 8) / 8;
+  const signature = `${scrollState.fxFrom}:${scrollState.fxTo}:${t}:${themeName()}`;
+  if (!force && signature === lastFxSignature) return;
+  lastFxSignature = signature;
   const mood = getMood();
   const light = mood.theme === "light";
   const lightSpot = light ? 0.55 : 1;
@@ -570,60 +602,56 @@ function updateFxVariables() {
   root.style.setProperty("--fx-scale", lerp(from.scale, to.scale, t).toFixed(4));
 }
 
-function shapePosition(particle, time, sectionName, intensity = 1) {
+const positionHero = { x: 0, y: 0, z: 0 };
+const positionSectionA = { x: 0, y: 0, z: 0 };
+const positionSectionB = { x: 0, y: 0, z: 0 };
+
+function shapePosition(particle, time, sectionName, intensity = 1, target = positionHero) {
   const halfW = viewport.width * 0.5;
   const halfH = viewport.height * 0.5;
   const angle = particle.angle + time * (0.08 + particle.speed * 0.08) + scrollState.progress * TAU * 0.22;
   const wobble = Math.sin(time * particle.speed * 2.1 * motionProfile.speed + particle.seed) * 0.04 * motionProfile.wobble;
   const heroRadius = 0.36 + particle.radius * 0.54;
-
-  const hero = {
-    x: Math.cos(angle) * halfW * heroRadius + pointer.x * 0.12 * motionProfile.pointer,
-    y: Math.sin(angle) * halfH * heroRadius * 0.86 + pointer.y * 0.08 * motionProfile.pointer,
-    z: (particle.depth - 0.5) * 0.8,
-  };
+  const heroX = Math.cos(angle) * halfW * heroRadius + pointer.x * 0.12 * motionProfile.pointer;
+  const heroY = Math.sin(angle) * halfH * heroRadius * 0.86 + pointer.y * 0.08 * motionProfile.pointer;
+  const heroZ = (particle.depth - 0.5) * 0.8;
 
   if (sectionName === "method") {
     const lane = particle.lane / 4;
-    return {
-      x: lerp(-halfW * 0.48, halfW * 0.48, lane) + wobble,
-      y: Math.sin(angle * 1.4) * halfH * 0.38,
-      z: hero.z * 0.72,
-    };
+    target.x = lerp(-halfW * 0.48, halfW * 0.48, lane) + wobble;
+    target.y = Math.sin(angle * 1.4) * halfH * 0.38;
+    target.z = heroZ * 0.72;
+    return target;
   }
 
   if (sectionName === "projects") {
     const row = particle.row - 1;
-    return {
-      x: Math.sin(angle + particle.seed) * halfW * 0.64,
-      y: row * halfH * 0.24 + wobble,
-      z: hero.z,
-    };
+    target.x = Math.sin(angle + particle.seed) * halfW * 0.64;
+    target.y = row * halfH * 0.24 + wobble;
+    target.z = heroZ;
+    return target;
   }
 
   if (sectionName === "about") {
     const step = particle.lane / 4;
-    return {
-      x: lerp(-halfW * 0.62, halfW * 0.62, step),
-      y: Math.sin(angle * 2.2) * halfH * 0.16 + wobble,
-      z: hero.z * 0.5,
-    };
+    target.x = lerp(-halfW * 0.62, halfW * 0.62, step);
+    target.y = Math.sin(angle * 2.2) * halfH * 0.16 + wobble;
+    target.z = heroZ * 0.5;
+    return target;
   }
 
   if (sectionName === "contact") {
     const localRadius = 0.14 + particle.radius * 0.35;
-    return {
-      x: Math.cos(angle) * halfW * localRadius + halfW * 0.12,
-      y: Math.sin(angle * 1.2) * halfH * localRadius + wobble,
-      z: hero.z * 0.34,
-    };
+    target.x = Math.cos(angle) * halfW * localRadius + halfW * 0.12;
+    target.y = Math.sin(angle * 1.2) * halfH * localRadius + wobble;
+    target.z = heroZ * 0.34;
+    return target;
   }
 
-  return {
-    x: hero.x * intensity,
-    y: hero.y * intensity,
-    z: hero.z,
-  };
+  target.x = heroX * intensity;
+  target.y = heroY * intensity;
+  target.z = heroZ;
+  return target;
 }
 
 function hideInstance(mesh, index) {
@@ -647,22 +675,20 @@ function updateInstanced(mesh, data, time, sizeBoost = 1) {
       return;
     }
 
-    const hero = shapePosition(particle, time, "hero", 1.1);
-    const sectionA = shapePosition(particle, time, scrollState.fxFrom, mood.energy);
-    const sectionB = shapePosition(particle, time, scrollState.fxTo, mood.energy);
+    const hero = shapePosition(particle, time, "hero", 1.1, positionHero);
+    const sectionA = shapePosition(particle, time, scrollState.fxFrom, mood.energy, positionSectionA);
+    const sectionB = shapePosition(particle, time, scrollState.fxTo, mood.energy, positionSectionB);
     const sectionMix = smoothstep(0, 1, scrollState.fxMix);
-    const to = {
-      x: lerp(sectionA.x, sectionB.x, sectionMix),
-      y: lerp(sectionA.y, sectionB.y, sectionMix),
-      z: lerp(sectionA.z, sectionB.z, sectionMix),
-    };
+    const toX = lerp(sectionA.x, sectionB.x, sectionMix);
+    const toY = lerp(sectionA.y, sectionB.y, sectionMix);
+    const toZ = lerp(sectionA.z, sectionB.z, sectionMix);
     const twinkle = 0.54 + Math.sin(time * 3 + particle.seed) * 0.34 + Math.sin(time * 0.9 + particle.seed * 0.37) * 0.12;
     const scale = particle.size * sizeBoost * motionProfile.scale * (0.78 + twinkle * 0.96) * (mood.theme === "light" ? 0.78 : 1.16);
 
     dummy.position.set(
-      lerp(hero.x, to.x, fragment),
-      lerp(hero.y, to.y, fragment),
-      lerp(hero.z, to.z, fragment) + Math.sin(time * (0.24 + particle.speed * 0.08) * motionProfile.speed + particle.seed) * 0.035 * motionProfile.wobble,
+      lerp(hero.x, toX, fragment),
+      lerp(hero.y, toY, fragment),
+      lerp(hero.z, toZ, fragment) + Math.sin(time * (0.24 + particle.speed * 0.08) * motionProfile.speed + particle.seed) * 0.035 * motionProfile.wobble,
     );
     dummy.rotation.z = particle.angle + time * 0.16 * motionProfile.speed;
     dummy.scale.setScalar(scale);
@@ -690,19 +716,17 @@ function updateShards(time) {
       return;
     }
 
-    const hero = shapePosition(particle, time, "hero", 0.58);
-    const sectionA = shapePosition(particle, time, scrollState.fxFrom, 0.9);
-    const sectionB = shapePosition(particle, time, scrollState.fxTo, 0.9);
+    const hero = shapePosition(particle, time, "hero", 0.58, positionHero);
+    const sectionA = shapePosition(particle, time, scrollState.fxFrom, 0.9, positionSectionA);
+    const sectionB = shapePosition(particle, time, scrollState.fxTo, 0.9, positionSectionB);
     const sectionMix = smoothstep(0, 1, scrollState.fxMix);
-    const to = {
-      x: lerp(sectionA.x, sectionB.x, sectionMix),
-      y: lerp(sectionA.y, sectionB.y, sectionMix),
-      z: lerp(sectionA.z, sectionB.z, sectionMix),
-    };
+    const toX = lerp(sectionA.x, sectionB.x, sectionMix);
+    const toY = lerp(sectionA.y, sectionB.y, sectionMix);
+    const toZ = lerp(sectionA.z, sectionB.z, sectionMix);
     dummy.position.set(
-      lerp(hero.x, to.x, fragment),
-      lerp(hero.y, to.y, fragment),
-      lerp(hero.z, to.z, fragment) + 0.08,
+      lerp(hero.x, toX, fragment),
+      lerp(hero.y, toY, fragment),
+      lerp(hero.z, toZ, fragment) + 0.08,
     );
     dummy.rotation.set(
       time * (0.2 + particle.speed) * motionProfile.speed + particle.seed,
@@ -754,16 +778,12 @@ function updateRings(time) {
 }
 
 function updateSigil(time) {
-  const rect = stage?.getBoundingClientRect();
-  const centerX = rect ? rect.left + rect.width / 2 : window.innerWidth * 0.62;
-  const centerY = rect ? rect.top + rect.height / 2 : window.innerHeight * 0.45;
-  const target = screenToWorld(clamp(centerX, 0, window.innerWidth), clamp(centerY, 0, window.innerHeight), 0.18);
   const exit = smoothstep(0.08, 0.78, scrollState.heroExit);
   const mood = getMood();
 
-  sigilGroup.position.lerp(target, 0.1);
-  ringGroup.position.lerp(target, 0.08);
-  trailGroup.position.lerp(target, 0.06);
+  sigilGroup.position.lerp(stageTarget, 0.1);
+  ringGroup.position.lerp(stageTarget, 0.08);
+  trailGroup.position.lerp(stageTarget, 0.06);
   sigilGroup.rotation.x = pointer.y * 0.1 * motionProfile.pointer + Math.sin(time * 0.32 * motionProfile.speed) * 0.032 * motionProfile.wobble;
   sigilGroup.rotation.y = pointer.x * 0.12 * motionProfile.pointer + Math.sin(time * 0.19 * motionProfile.speed) * 0.08 * motionProfile.wobble;
   sigilGroup.rotation.z = Math.sin(time * 0.22 * motionProfile.speed) * 0.04 * motionProfile.wobble + exit * 0.36;
@@ -818,14 +838,15 @@ function updateActiveSection() {
   const mix = smoothstep(0.08, 0.92, rawMix);
   const active = mix < 0.5 ? from.id : to.id;
 
+  const previousActive = scrollState.active;
   scrollState.fxFrom = from.id;
   scrollState.fxTo = to.id;
   scrollState.fxMix = mix;
   scrollState.active = active;
-  root.dataset.section = active;
+  if (root.dataset.section !== active) root.dataset.section = active;
   updateFxVariables();
 
-  updateChapterLinks(active);
+  if (previousActive !== active) updateChapterLinks(active);
 }
 
 function updateChapterLinks(activeSection) {
@@ -954,6 +975,7 @@ function updateScroll() {
   scrollState.y = window.scrollY || 0;
   scrollState.progress = clamp(scrollState.y / maxScroll);
   scrollState.heroExit = clamp(scrollState.y / Math.max(window.innerHeight * 0.92, 1));
+  updateStageTarget();
   if (!navigationMotion.active) updateActiveSection();
 }
 
@@ -1169,6 +1191,7 @@ function setTheme(theme) {
     themeToggle.setAttribute("aria-label", theme === "light" ? "Usar tema escuro" : "Usar tema claro");
   }
   localStorage.setItem("rickson-portfolio-theme", theme);
+  updateFxVariables(true);
 }
 
 function setupRevealObserver() {
@@ -1206,9 +1229,45 @@ function setupMagneticMotion() {
   });
 }
 
+function scheduleScrollUpdate() {
+  if (scrollUpdateFrame || disposed) return;
+  scrollUpdateFrame = requestAnimationFrame(() => {
+    scrollUpdateFrame = 0;
+    updateScroll();
+  });
+}
+
+function scheduleResize() {
+  if (resizeFrame || disposed) return;
+  resizeFrame = requestAnimationFrame(() => {
+    resizeFrame = 0;
+    resize();
+  });
+}
+
+function pauseVisuals() {
+  visualsPaused = true;
+  cancelAnimationFrame(animationFrame);
+  window.clearTimeout(animationTimer);
+  animationFrame = 0;
+  animationTimer = 0;
+}
+
+function resumeVisuals() {
+  if (disposed || !visualsPaused || document.hidden) return;
+  visualsPaused = false;
+  lastAnimationFrame = 0;
+  animationFrame = requestAnimationFrame(animate);
+}
+
+function handleVisibilityChange() {
+  if (document.hidden) pauseVisuals();
+  else resumeVisuals();
+}
+
 function setupEvents() {
-  window.addEventListener("scroll", updateScroll, { passive: true, signal: runtimeSignal });
-  window.addEventListener("resize", resize, { signal: runtimeSignal });
+  window.addEventListener("scroll", scheduleScrollUpdate, { passive: true, signal: runtimeSignal });
+  window.addEventListener("resize", scheduleResize, { passive: true, signal: runtimeSignal });
   window.addEventListener("wheel", () => {
     if (navigationMotion.active) stopNavigationMotion();
   }, { passive: true, signal: runtimeSignal });
@@ -1223,6 +1282,9 @@ function setupEvents() {
     pointer.tx = (event.clientX / window.innerWidth - 0.5) * 2;
     pointer.ty = -(event.clientY / window.innerHeight - 0.5) * 2;
   }, { signal: runtimeSignal });
+  document.addEventListener("visibilitychange", handleVisibilityChange, { signal: runtimeSignal });
+  window.addEventListener("portfolio-visuals-pause", pauseVisuals, { signal: runtimeSignal });
+  window.addEventListener("portfolio-visuals-resume", resumeVisuals, { signal: runtimeSignal });
 
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
     link.addEventListener("click", (event) => {
@@ -1264,9 +1326,13 @@ function animate(now = 0) {
     dispose();
     return;
   }
+  if (visualsPaused || document.hidden) return;
 
   const reducedMotion = Boolean(reducedMotionQuery?.matches);
-  const targetFrameInterval = window.innerWidth <= 760 ? 1000 / 30 : 1000 / 45;
+  const targetFps = limitedHardware
+    ? (window.innerWidth <= 760 ? 18 : 24)
+    : (window.innerWidth <= 760 ? 24 : 30);
+  const targetFrameInterval = 1000 / targetFps;
 
   if (!reducedMotion && now - lastAnimationFrame < targetFrameInterval) {
     animationFrame = requestAnimationFrame(animate);
@@ -1287,7 +1353,9 @@ function animate(now = 0) {
   renderer.render(scene, camera);
   if (reducedMotion) {
     animationTimer = window.setTimeout(() => {
-      animationFrame = requestAnimationFrame(animate);
+      if (!visualsPaused && !document.hidden && !disposed) {
+        animationFrame = requestAnimationFrame(animate);
+      }
     }, 250);
   } else {
     animationFrame = requestAnimationFrame(animate);
@@ -1299,6 +1367,8 @@ function dispose() {
   disposed = true;
   cancelAnimationFrame(animationFrame);
   cancelAnimationFrame(navigationMotion.frame);
+  cancelAnimationFrame(scrollUpdateFrame);
+  cancelAnimationFrame(resizeFrame);
   window.clearTimeout(animationTimer);
   runtimeController.abort();
   revealObserver?.disconnect();
@@ -1330,7 +1400,7 @@ function boot() {
 
   setLanguage(forcedLanguage === "en" || forcedLanguage === "pt" ? forcedLanguage : localStorage.getItem("rickson-portfolio-lang") || "pt");
   resize();
-  animationFrame = requestAnimationFrame(animate);
+  if (!visualsPaused) animationFrame = requestAnimationFrame(animate);
 }
 
 boot();

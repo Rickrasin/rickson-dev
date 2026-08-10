@@ -34,17 +34,17 @@
 }
 
 .routeTransition[data-phase="leaving"] .veil {
-  animation: veilIn 430ms cubic-bezier(0.32, 0, 0.18, 1) both;
+  animation: veilIn 300ms cubic-bezier(0.32, 0, 0.18, 1) both;
 }
 
 .routeTransition[data-phase="leaving"] .grid {
-  animation: gridIn 430ms ease both;
+  animation: gridIn 300ms ease both;
 }
 
 .routeTransition[data-phase="arriving"] .veil,
 .routeTransition[data-phase="arriving"] .grid {
   opacity: 1;
-  animation: veilOut 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: veilOut 440ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .sigilWrap {
@@ -57,13 +57,13 @@
 }
 
 .routeTransition[data-phase="leaving"] .sigilWrap {
-  animation: sigilGather 430ms cubic-bezier(0.32, 0, 0.18, 1) both;
+  animation: sigilGather 300ms cubic-bezier(0.32, 0, 0.18, 1) both;
 }
 
 .routeTransition[data-phase="arriving"] .sigilWrap {
   top: 50%;
   left: 50%;
-  animation: sigilRelease 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: sigilRelease 440ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .sigil {
@@ -75,7 +75,7 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.15;
-  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--gold) 28%, transparent));
+  will-change: opacity, transform;
 }
 
 .homeSigil,
@@ -100,12 +100,12 @@
 
 .routeTransition[data-direction="forward"][data-phase="leaving"] .homeSigil,
 .routeTransition[data-direction="back"][data-phase="leaving"] .caseSigil {
-  animation: oldSigilDissolve 430ms ease-in both;
+  animation: oldSigilDissolve 300ms ease-in both;
 }
 
 .routeTransition[data-direction="forward"][data-phase="leaving"] .caseSigil,
 .routeTransition[data-direction="back"][data-phase="leaving"] .homeSigil {
-  animation: newSigilForm 430ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: newSigilForm 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .routeTransition[data-direction="forward"][data-phase="arriving"] .homeSigil,
@@ -121,7 +121,7 @@
 .routeTransition[data-direction="forward"][data-phase="leaving"] .caseSigil path,
 .routeTransition[data-direction="back"][data-phase="leaving"] .homeSigil path {
   stroke-dasharray: 280;
-  animation: drawSigil 390ms 40ms ease-out both;
+  animation: drawSigil 270ms 30ms ease-out both;
 }
 
 .spark {
@@ -136,7 +136,7 @@
 }
 
 .routeTransition[data-phase="leaving"] .spark {
-  animation: sparkOrbit 430ms ease-out both;
+  animation: sparkOrbit 300ms ease-out both;
 }
 
 .spark:nth-of-type(2) { --spark-x: 138px; --spark-y: -74px; animation-delay: 35ms !important; }

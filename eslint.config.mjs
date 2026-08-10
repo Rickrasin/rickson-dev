@@ -10,6 +10,7 @@ export default defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    "public/assets/three.module.js"
+    "public/assets/three.module.js",
+    "public/assets/three.module.min.js"
   ])
 ]);

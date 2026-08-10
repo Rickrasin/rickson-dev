@@ -1,26 +1,19 @@
 "use client";
 
-import { useEffect } from "react";
+import Script from "next/script";
 
-const runtimeSrc = "/portfolio-runtime.js?v=20260718-runtime-loader-2";
+const runtimeSrc = "/portfolio-runtime.js?v=20260810-performance-1";
 const runtimeMountEvent = "portfolio-runtime-mount";
 
 export function PortfolioRuntime() {
-  useEffect(() => {
-    const mountFrame = window.requestAnimationFrame(() => {
-      window.dispatchEvent(new Event(runtimeMountEvent));
-    });
-
-    return () => {
-      window.cancelAnimationFrame(mountFrame);
-    };
-  }, []);
-
   return (
-    <script
-      async
+    <Script
       data-portfolio-runtime="true"
+      onReady={() => {
+        window.dispatchEvent(new Event(runtimeMountEvent));
+      }}
       src={runtimeSrc}
+      strategy="lazyOnload"
       type="module"
     />
   );

@@ -25,6 +25,8 @@ const initialState: TransitionState = {
   originY: 50,
   phase: "idle"
 };
+const leaveDuration = 300;
+const arrivalDuration = 440;
 
 export function MagicRouteTransition() {
   const pathname = usePathname();
@@ -41,8 +43,12 @@ export function MagicRouteTransition() {
   }, [transition]);
 
   useEffect(() => {
-    router.prefetch("/cases/silver3");
-    router.prefetch("/");
+    const prefetchTimer = window.setTimeout(() => {
+      router.prefetch("/cases/silver3");
+      router.prefetch("/");
+    }, 2200);
+
+    return () => window.clearTimeout(prefetchTimer);
   }, [router]);
 
   useEffect(() => {
@@ -82,13 +88,14 @@ export function MagicRouteTransition() {
       transitionRef.current = nextState;
       targetPathRef.current = destination.pathname;
       targetHashRef.current = destination.hash;
+      window.dispatchEvent(new Event("portfolio-visuals-pause"));
       document.documentElement.classList.add("is-route-transitioning");
       setTransition(nextState);
 
       navigationTimerRef.current = window.setTimeout(() => {
         const routerDestination = `${destination.pathname}${destination.search}`;
         router.push(routerDestination, { scroll: false });
-      }, reducedMotion ? 30 : 430);
+      }, reducedMotion ? 30 : leaveDuration);
     }
 
     document.addEventListener("click", handleRouteClick, true);
@@ -127,7 +134,8 @@ export function MagicRouteTransition() {
         transitionRef.current = initialState;
         setTransition(initialState);
         document.documentElement.classList.remove("is-route-transitioning");
-      }, reducedMotion ? 30 : 620);
+        window.dispatchEvent(new Event("portfolio-visuals-resume"));
+      }, reducedMotion ? 30 : arrivalDuration);
     });
 
     return () => {
@@ -140,6 +148,7 @@ export function MagicRouteTransition() {
     if (navigationTimerRef.current) window.clearTimeout(navigationTimerRef.current);
     if (arrivalTimerRef.current) window.clearTimeout(arrivalTimerRef.current);
     document.documentElement.classList.remove("is-route-transitioning");
+    window.dispatchEvent(new Event("portfolio-visuals-resume"));
   }, []);
 
   const transitionStyle: TransitionStyle = {

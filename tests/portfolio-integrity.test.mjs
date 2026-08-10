@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
@@ -9,6 +9,7 @@ const sourceFiles = [
   "src/features/portfolio/ui/PortfolioPage.tsx",
   "src/features/portfolio/ui/Silver3CasePage.tsx",
   "src/features/portfolio/ui/PortfolioRuntime.tsx",
+  "src/features/portfolio/ui/MagicRouteTransition.tsx",
   "src/app/cases/silver3/page.tsx",
   "src/app/globals.css",
   "public/portfolio-runtime.js",
@@ -41,6 +42,17 @@ test("discarded portrait and hat concepts stay removed", () => {
 test("legacy language routes redirect to the canonical home", () => {
   assert.match(nextConfigSource, /source:\s*"\/pt"[\s\S]*?destination:\s*"\/"/);
   assert.match(nextConfigSource, /source:\s*"\/en"[\s\S]*?destination:\s*"\/"/);
+});
+
+test("performance safeguards keep browser work under control", () => {
+  const optimizedThreePath = `${root}/public/assets/three.module.min.js`;
+
+  assert.ok(existsSync(optimizedThreePath), "the optimized Three.js runtime is missing");
+  assert.ok(statSync(optimizedThreePath).size < 700 * 1024, "the Three.js runtime grew beyond the size budget");
+  assert.doesNotMatch(combinedSource, /\bunoptimized\b/, "portfolio images must use responsive optimization");
+  assert.match(combinedSource, /strategy="lazyOnload"/, "visual runtimes must load without blocking initial interaction");
+  assert.match(combinedSource, /portfolio-visuals-pause/, "route changes must pause continuous visual work");
+  assert.doesNotMatch(combinedSource, /assets\/three\.module\.js/, "visual runtimes must not load the unminified Three.js build");
 });
 
 test("Silver3 links to a dedicated case without claiming unavailable capabilities", () => {
