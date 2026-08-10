@@ -24,6 +24,15 @@
   --route-vignette-peak: 0.22;
 }
 
+:global(:root:not([data-theme="light"])) .routeTransition[data-direction="back"] {
+  --route-veil-early: 0.2;
+  --route-veil-mid: 0.5;
+  --route-veil-half: 0.3;
+  --route-veil-peak: 0.62;
+  --route-vignette-mid: 0.24;
+  --route-vignette-peak: 0.4;
+}
+
 .routeTransition[data-phase="leaving"],
 .routeTransition[data-phase="arriving"] {
   visibility: visible;

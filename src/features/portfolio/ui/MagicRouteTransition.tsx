@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import styles from "./MagicRouteTransition.module.css";
 
 type Phase = "idle" | "leaving" | "arriving";
@@ -135,7 +135,7 @@ export function MagicRouteTransition() {
     return () => document.removeEventListener("click", handleRouteClick, true);
   }, [pathname, router]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (
       transitionRef.current.phase !== "leaving" ||
       pathname !== targetPathRef.current
@@ -148,6 +148,11 @@ export function MagicRouteTransition() {
     const anchor = anchorId ? document.getElementById(anchorId) : null;
     const targetTop = anchor ? anchor.getBoundingClientRect().top + window.scrollY : 0;
     window.scrollTo(0, targetTop);
+    window.dispatchEvent(new Event(
+      transitionRef.current.direction === "back"
+        ? "portfolio-runtime-mount"
+        : "silver3-runtime-mount"
+    ));
     if (targetHashRef.current) {
       const currentUrl = new URL(window.location.href);
       window.history.replaceState(
