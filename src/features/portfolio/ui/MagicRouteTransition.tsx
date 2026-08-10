@@ -17,6 +17,7 @@ type TransitionState = {
 type TransitionStyle = CSSProperties & {
   "--route-origin-x": string;
   "--route-origin-y": string;
+  "--route-turn": string;
 };
 
 const initialState: TransitionState = {
@@ -25,8 +26,8 @@ const initialState: TransitionState = {
   originY: 50,
   phase: "idle"
 };
-const leaveDuration = 300;
-const arrivalDuration = 440;
+const leaveDuration = 1500;
+const arrivalDuration = 1350;
 
 export function MagicRouteTransition() {
   const pathname = usePathname();
@@ -153,7 +154,8 @@ export function MagicRouteTransition() {
 
   const transitionStyle: TransitionStyle = {
     "--route-origin-x": `${transition.originX}px`,
-    "--route-origin-y": `${transition.originY}px`
+    "--route-origin-y": `${transition.originY}px`,
+    "--route-turn": transition.direction === "forward" ? "1" : "-1"
   };
 
   return (
@@ -165,35 +167,54 @@ export function MagicRouteTransition() {
       style={transitionStyle}
     >
       <div className={styles.veil} />
-      <div className={styles.grid} />
-      <div className={styles.sigilWrap}>
-        <svg className={styles.sigil} viewBox="0 0 240 240">
-          <g className={styles.homeSigil}>
-            <circle cx="120" cy="120" r="84" />
-            <circle cx="120" cy="120" r="58" />
-            <path d="M120 31 194 74v88l-74 43-74-43V74Z" />
-            <path d="m120 58 54 94H66Z" />
-            <path d="M66 89h108M66 151h108M120 58v124" />
-            <circle className={styles.node} cx="120" cy="58" r="5" />
-            <circle className={styles.node} cx="66" cy="151" r="5" />
-            <circle className={styles.node} cx="174" cy="151" r="5" />
-          </g>
-          <g className={styles.caseSigil}>
-            <circle cx="120" cy="120" r="96" />
-            <path d="m120 34 83 144H37Z" />
-            <path d="m120 68 50 87H70Z" />
-            <path d="M120 34v172M37 178l166-56M203 178 37 122" />
-            <path className={styles.crystal} d="m120 88 25 32-25 39-25-39Z" />
-            <path className={styles.crystal} d="m120 88 8 32-8 39-8-39Z" />
-            <circle className={styles.node} cx="120" cy="34" r="5" />
-            <circle className={styles.node} cx="37" cy="178" r="5" />
-            <circle className={styles.node} cx="203" cy="178" r="5" />
-            <circle className={styles.node} cx="120" cy="206" r="4" />
-          </g>
-        </svg>
-        <span className={styles.spark} /><span className={styles.spark} />
-        <span className={styles.spark} /><span className={styles.spark} />
+      <div className={styles.depthGlow} />
+      <div className={styles.stage}>
+        <div className={styles.worldGrid} />
+        <div className={styles.orbitalSystem}>
+          <div className={`${styles.halo} ${styles.haloOuter}`} />
+          <div className={`${styles.halo} ${styles.haloInner}`} />
+          <div className={`${styles.orbitRing} ${styles.ringOne}`} />
+          <div className={`${styles.orbitRing} ${styles.ringTwo}`} />
+          <div className={`${styles.orbitRing} ${styles.ringThree}`} />
+          <span className={`${styles.axis} ${styles.axisHorizontal}`} />
+          <span className={`${styles.axis} ${styles.axisVertical}`} />
+
+          <div className={styles.coreRig}>
+            <div className={styles.homeForm}>
+              <div className={styles.homeFormSpin}>
+                <span className={`${styles.trianglePlane} ${styles.triangleOuter}`} />
+                <span className={`${styles.trianglePlane} ${styles.triangleMiddle}`} />
+                <span className={`${styles.trianglePlane} ${styles.triangleInner}`} />
+              </div>
+            </div>
+            <div className={styles.caseForm}>
+              <div className={styles.caseFormSpin}>
+                <span className={`${styles.diamondPlane} ${styles.diamondFront}`} />
+                <span className={`${styles.diamondPlane} ${styles.diamondCross}`} />
+                <span className={`${styles.diamondPlane} ${styles.diamondDepth}`} />
+                <span className={`${styles.formNode} ${styles.nodeTop}`} />
+                <span className={`${styles.formNode} ${styles.nodeRight}`} />
+                <span className={`${styles.formNode} ${styles.nodeBottom}`} />
+                <span className={`${styles.formNode} ${styles.nodeLeft}`} />
+              </div>
+            </div>
+            <span className={styles.corePoint} />
+          </div>
+
+          <span className={`${styles.depthPoint} ${styles.pointA}`} />
+          <span className={`${styles.depthPoint} ${styles.pointB}`} />
+          <span className={`${styles.depthPoint} ${styles.pointC}`} />
+          <span className={`${styles.depthPoint} ${styles.pointD}`} />
+          <span className={`${styles.depthPoint} ${styles.pointE}`} />
+          <span className={`${styles.depthPoint} ${styles.pointF}`} />
+
+          <span className={`${styles.spark} ${styles.sparkA}`} />
+          <span className={`${styles.spark} ${styles.sparkB}`} />
+          <span className={`${styles.spark} ${styles.sparkC}`} />
+          <span className={`${styles.spark} ${styles.sparkD}`} />
+        </div>
       </div>
+      <div className={styles.vignette} />
     </div>
   );
 }
