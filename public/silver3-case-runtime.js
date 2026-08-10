@@ -27,13 +27,9 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     }
   }
 
-  const resourceLimited = Boolean(
-    navigator.connection?.saveData ||
-    (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
-    (navigator.deviceMemory && navigator.deviceMemory <= 4)
-  );
+  const resourceLimited = Boolean(navigator.connection?.saveData);
   let visualQuality = hasMajorGraphicsCaveat() ? "software" : resourceLimited ? "balanced" : "full";
-  const pixelRatioCap = () => visualQuality === "software" ? 0.65 : visualQuality === "balanced" ? 0.85 : window.innerWidth < 760 ? 1 : 1.25;
+  const pixelRatioCap = () => visualQuality === "software" ? 0.85 : visualQuality === "balanced" ? 1 : window.innerWidth < 760 ? 1 : 1.25;
   const renderer = new THREE.WebGLRenderer({
     canvas,
     alpha: true,
@@ -261,6 +257,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   let visualsPaused = document.hidden || root.classList.contains("is-route-transitioning");
   let averageFrameCost = 0;
   let slowFrameStreak = 0;
+  let qualityAssessmentStartedAt = performance.now() + 3000;
 
   const sectionPalette = {
     "case-intro": ["238 187 70", "95 143 160", "79 140 121"],
@@ -434,11 +431,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     }
     if (visualsPaused || document.hidden) return;
 
-    const targetFps = visualQuality === "software"
-      ? 20
-      : visualQuality === "balanced"
-        ? 30
-        : (window.innerWidth < 760 ? 30 : 60);
+    const targetFps = 60;
     if (!reducedMotion && now - lastRenderedAt < 1000 / targetFps) {
       frameId = requestAnimationFrame(animate);
       return;
@@ -453,7 +446,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     updateThemeColors(delta);
     updateRune(now / 1000, motionDelta);
     renderer.render(scene, camera);
-    if (visualQuality !== "software" && !reducedMotion) {
+    if (visualQuality !== "software" && !reducedMotion && now >= qualityAssessmentStartedAt) {
       const frameCost = performance.now() - frameStartedAt;
       averageFrameCost = averageFrameCost ? THREE.MathUtils.lerp(averageFrameCost, frameCost, 0.08) : frameCost;
       const missedFrame = frameGap > 1000 / targetFps * 1.8;
@@ -465,6 +458,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
         root.dataset.visualQuality = visualQuality;
         averageFrameCost = 0;
         slowFrameStreak = 0;
+        qualityAssessmentStartedAt = performance.now() + 1500;
         resize();
       }
     }

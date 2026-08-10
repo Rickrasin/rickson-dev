@@ -54,6 +54,7 @@ test("performance safeguards keep browser work under control", () => {
   assert.match(combinedSource, /portfolio-visuals-pause/, "route changes must pause continuous visual work");
   assert.match(combinedSource, /visualQuality/, "visual runtimes must expose their adaptive quality mode");
   assert.match(combinedSource, /failIfMajorPerformanceCaveat/, "visual runtimes must detect software rendering when possible");
+  assert.ok((combinedSource.match(/const targetFps = 60/g) || []).length >= 2, "all visual profiles must target 60 FPS");
   assert.doesNotMatch(combinedSource, /assets\/three\.module\.js/, "visual runtimes must not load the unminified Three.js build");
 });
 
