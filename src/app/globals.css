@@ -957,6 +957,7 @@ h1 {
   .rail-nav a:focus-visible strong { transform: translate(-50%, 0); }
   .rail-foot { display: none; }
   .topbar { left: 0; padding: 18px var(--pad); }
+  .topbar .wordmark { display: none; }
   .quiet-link { display: none; }
   .shell {
     width: min(100% - 40px, var(--max));
