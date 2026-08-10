@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 
-const runtimeSrc = "/portfolio-runtime.js?v=20260810-performance-4";
+const runtimeSrc = "/portfolio-runtime.js?v=20260810-route-transmutation-11";
 const runtimeMountEvent = "portfolio-runtime-mount";
 
 export function PortfolioRuntime() {

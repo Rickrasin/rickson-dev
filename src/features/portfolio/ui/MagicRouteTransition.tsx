@@ -17,7 +17,6 @@ type TransitionState = {
 type TransitionStyle = CSSProperties & {
   "--route-origin-x": string;
   "--route-origin-y": string;
-  "--route-turn": string;
 };
 
 const initialState: TransitionState = {
@@ -26,8 +25,39 @@ const initialState: TransitionState = {
   originY: 50,
   phase: "idle"
 };
-const leaveDuration = 1500;
-const arrivalDuration = 1350;
+const leaveDuration = 1550;
+const arrivalDuration = 1250;
+const routeRuntimes: Record<Direction, string> = {
+  forward: "/silver3-case-runtime.js?v=20260810-route-transmutation-11",
+  back: "/portfolio-runtime.js?v=20260810-route-transmutation-11"
+};
+
+function warmRouteRuntime(direction: Direction) {
+  const src = routeRuntimes[direction];
+  if (document.querySelector(`script[data-route-runtime-warmup][src="${src}"]`)) return;
+  const script = document.createElement("script");
+  script.dataset.routeRuntimeWarmup = "true";
+  script.src = src;
+  script.type = "module";
+  document.head.append(script);
+}
+
+function announceRouteMotion(phase: Exclude<Phase, "idle">, direction: Direction) {
+  const startedAt = performance.now();
+  document.documentElement.dataset.routeTransitionPhase = phase;
+  document.documentElement.dataset.routeTransitionDirection = direction;
+  document.documentElement.dataset.routeTransitionStartedAt = String(startedAt);
+  window.dispatchEvent(new CustomEvent("portfolio-route-transition", {
+    detail: { direction, phase, startedAt }
+  }));
+}
+
+function finishRouteMotion() {
+  delete document.documentElement.dataset.routeTransitionPhase;
+  delete document.documentElement.dataset.routeTransitionDirection;
+  delete document.documentElement.dataset.routeTransitionStartedAt;
+  window.dispatchEvent(new Event("portfolio-route-transition-end"));
+}
 
 export function MagicRouteTransition() {
   const pathname = usePathname();
@@ -77,20 +107,22 @@ export function MagicRouteTransition() {
       event.stopImmediatePropagation();
 
       const bounds = anchor.getBoundingClientRect();
+      const clickedWithPointer = event.detail > 0;
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const direction: Direction = pathname.startsWith("/cases/") ? "back" : "forward";
       const nextState: TransitionState = {
         direction,
-        originX: bounds.left + bounds.width / 2,
-        originY: bounds.top + bounds.height / 2,
+        originX: clickedWithPointer ? event.clientX : bounds.left + bounds.width / 2,
+        originY: clickedWithPointer ? event.clientY : bounds.top + bounds.height / 2,
         phase: "leaving"
       };
 
       transitionRef.current = nextState;
       targetPathRef.current = destination.pathname;
       targetHashRef.current = destination.hash;
-      window.dispatchEvent(new Event("portfolio-visuals-pause"));
       document.documentElement.classList.add("is-route-transitioning");
+      announceRouteMotion("leaving", direction);
+      warmRouteRuntime(direction);
       setTransition(nextState);
 
       navigationTimerRef.current = window.setTimeout(() => {
@@ -127,15 +159,17 @@ export function MagicRouteTransition() {
 
     const frame = window.requestAnimationFrame(() => {
       document.documentElement.style.scrollBehavior = previousScrollBehavior;
+      window.scrollTo(0, targetTop);
       const arriving = { ...transitionRef.current, phase: "arriving" as const };
       transitionRef.current = arriving;
+      announceRouteMotion("arriving", arriving.direction);
       setTransition(arriving);
 
       arrivalTimerRef.current = window.setTimeout(() => {
         transitionRef.current = initialState;
         setTransition(initialState);
         document.documentElement.classList.remove("is-route-transitioning");
-        window.dispatchEvent(new Event("portfolio-visuals-resume"));
+        finishRouteMotion();
       }, reducedMotion ? 30 : arrivalDuration);
     });
 
@@ -149,13 +183,12 @@ export function MagicRouteTransition() {
     if (navigationTimerRef.current) window.clearTimeout(navigationTimerRef.current);
     if (arrivalTimerRef.current) window.clearTimeout(arrivalTimerRef.current);
     document.documentElement.classList.remove("is-route-transitioning");
-    window.dispatchEvent(new Event("portfolio-visuals-resume"));
+    finishRouteMotion();
   }, []);
 
   const transitionStyle: TransitionStyle = {
     "--route-origin-x": `${transition.originX}px`,
-    "--route-origin-y": `${transition.originY}px`,
-    "--route-turn": transition.direction === "forward" ? "1" : "-1"
+    "--route-origin-y": `${transition.originY}px`
   };
 
   return (
@@ -167,53 +200,8 @@ export function MagicRouteTransition() {
       style={transitionStyle}
     >
       <div className={styles.veil} />
-      <div className={styles.depthGlow} />
-      <div className={styles.stage}>
-        <div className={styles.worldGrid} />
-        <div className={styles.orbitalSystem}>
-          <div className={`${styles.halo} ${styles.haloOuter}`} />
-          <div className={`${styles.halo} ${styles.haloInner}`} />
-          <div className={`${styles.orbitRing} ${styles.ringOne}`} />
-          <div className={`${styles.orbitRing} ${styles.ringTwo}`} />
-          <div className={`${styles.orbitRing} ${styles.ringThree}`} />
-          <span className={`${styles.axis} ${styles.axisHorizontal}`} />
-          <span className={`${styles.axis} ${styles.axisVertical}`} />
-
-          <div className={styles.coreRig}>
-            <div className={styles.homeForm}>
-              <div className={styles.homeFormSpin}>
-                <span className={`${styles.trianglePlane} ${styles.triangleOuter}`} />
-                <span className={`${styles.trianglePlane} ${styles.triangleMiddle}`} />
-                <span className={`${styles.trianglePlane} ${styles.triangleInner}`} />
-              </div>
-            </div>
-            <div className={styles.caseForm}>
-              <div className={styles.caseFormSpin}>
-                <span className={`${styles.diamondPlane} ${styles.diamondFront}`} />
-                <span className={`${styles.diamondPlane} ${styles.diamondCross}`} />
-                <span className={`${styles.diamondPlane} ${styles.diamondDepth}`} />
-                <span className={`${styles.formNode} ${styles.nodeTop}`} />
-                <span className={`${styles.formNode} ${styles.nodeRight}`} />
-                <span className={`${styles.formNode} ${styles.nodeBottom}`} />
-                <span className={`${styles.formNode} ${styles.nodeLeft}`} />
-              </div>
-            </div>
-            <span className={styles.corePoint} />
-          </div>
-
-          <span className={`${styles.depthPoint} ${styles.pointA}`} />
-          <span className={`${styles.depthPoint} ${styles.pointB}`} />
-          <span className={`${styles.depthPoint} ${styles.pointC}`} />
-          <span className={`${styles.depthPoint} ${styles.pointD}`} />
-          <span className={`${styles.depthPoint} ${styles.pointE}`} />
-          <span className={`${styles.depthPoint} ${styles.pointF}`} />
-
-          <span className={`${styles.spark} ${styles.sparkA}`} />
-          <span className={`${styles.spark} ${styles.sparkB}`} />
-          <span className={`${styles.spark} ${styles.sparkC}`} />
-          <span className={`${styles.spark} ${styles.sparkD}`} />
-        </div>
-      </div>
+      <div className={styles.originGlow} />
+      <div className={styles.apexFlash} />
       <div className={styles.vignette} />
     </div>
   );
