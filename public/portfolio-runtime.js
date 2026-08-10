@@ -25,6 +25,32 @@ let scrollUpdateFrame = 0;
 let resizeFrame = 0;
 let disposed = false;
 let visualsPaused = document.hidden || root.classList.contains("is-route-transitioning");
+const reducedMotionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+
+function hasMajorGraphicsCaveat() {
+  const probe = document.createElement("canvas");
+  try {
+    const contextOptions = { failIfMajorPerformanceCaveat: true };
+    const context = probe.getContext("webgl2", contextOptions) || probe.getContext("webgl", contextOptions);
+    if (!context) return true;
+    const debugInfo = context.getExtension("WEBGL_debug_renderer_info");
+    const rendererName = debugInfo
+      ? context.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+      : context.getParameter(context.RENDERER);
+    const softwareRenderer = /swiftshader|llvmpipe|softpipe|software|microsoft basic render|mesa offscreen/i.test(String(rendererName));
+    context.getExtension("WEBGL_lose_context")?.loseContext();
+    return softwareRenderer;
+  } catch {
+    return true;
+  }
+}
+
+const resourceLimited = Boolean(
+  navigator.connection?.saveData ||
+  (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+  (navigator.deviceMemory && navigator.deviceMemory <= 4)
+);
+let visualQuality = hasMajorGraphicsCaveat() ? "software" : resourceLimited ? "balanced" : "full";
 
 const TAU = Math.PI * 2;
 const clamp = (value, min = 0, max = 1) => Math.min(Math.max(value, min), max);
@@ -216,19 +242,12 @@ let lastFxSignature = "";
 const renderer = new THREE.WebGLRenderer({
   canvas,
   alpha: true,
-  antialias: true,
+  antialias: visualQuality === "full",
   powerPreference: "high-performance",
 });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, visualQuality === "software" ? 0.65 : visualQuality === "balanced" ? 0.85 : 1.25));
 renderer.setClearColor(0x000000, 0);
 if ("outputColorSpace" in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
-
-const reducedMotionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
-const limitedHardware = Boolean(
-  navigator.connection?.saveData ||
-  (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
-  (navigator.deviceMemory && navigator.deviceMemory <= 4)
-);
 const motionProfile = {
   particleStep: 1,
   emberStep: 1,
@@ -297,18 +316,34 @@ function updateMotionProfile() {
     next.wobble *= 0.24;
     next.speed *= 0.35;
     next.scale *= 0.82;
-    next.pixelRatioCap = 1;
-  } else if (limitedHardware) {
+    next.pixelRatioCap = visualQuality === "software" ? 0.65 : 1;
+  } else if (visualQuality === "software") {
+    next.particleStep = Math.max(next.particleStep, 3);
+    next.emberStep = Math.max(next.emberStep, 4);
+    next.shardStep = Math.max(next.shardStep, 3);
+    next.particleOpacity *= 0.68;
+    next.emberOpacity *= 0.5;
+    next.shardOpacity *= 0.54;
+    next.trailOpacity *= 0.44;
+    next.ringOpacity *= 0.52;
+    next.pointer *= 0.34;
+    next.wobble *= 0.48;
+    next.speed *= 0.62;
+    next.scale *= 0.88;
+    next.pixelRatioCap = 0.65;
+  } else if (visualQuality === "balanced") {
     next.particleStep = Math.max(next.particleStep, 2);
     next.emberStep = Math.max(next.emberStep, 2);
     next.shardStep = Math.max(next.shardStep, 2);
     next.particleOpacity *= 0.82;
     next.emberOpacity *= 0.72;
     next.shardOpacity *= 0.76;
+    next.trailOpacity *= 0.72;
+    next.ringOpacity *= 0.78;
     next.pointer *= 0.62;
     next.wobble *= 0.72;
     next.speed *= 0.82;
-    next.pixelRatioCap = 1;
+    next.pixelRatioCap = 0.85;
   }
 
   Object.assign(motionProfile, next);
@@ -369,9 +404,15 @@ function createParticleData(count, offset) {
   }));
 }
 
-const particleData = createParticleData(320, 4);
-const emberData = createParticleData(96, 800);
-const shardData = createParticleData(40, 1300);
+const compactAtBoot = window.innerWidth <= 760;
+const particleBudget = visualQuality === "software"
+  ? (compactAtBoot ? [64, 16, 8] : [96, 24, 12])
+  : visualQuality === "balanced"
+    ? (compactAtBoot ? [128, 34, 16] : [180, 48, 20])
+    : (compactAtBoot ? [220, 64, 28] : [320, 96, 40]);
+const particleData = createParticleData(particleBudget[0], 4);
+const emberData = createParticleData(particleBudget[1], 800);
+const shardData = createParticleData(particleBudget[2], 1300);
 
 function createInstancedPlanes(count, opacity, scale = 1) {
   const geometry = new THREE.PlaneGeometry(scale, scale);
@@ -454,7 +495,8 @@ function createCircleLine(radius, segments = 150) {
 }
 
 function buildRings() {
-  rings = Array.from({ length: 6 }, (_, index) => {
+  const ringCount = visualQuality === "software" ? 3 : visualQuality === "balanced" ? 4 : 6;
+  rings = Array.from({ length: ringCount }, (_, index) => {
     const material = new THREE.LineBasicMaterial({
       color: index % 2 ? "#384A55" : "#EEBB46",
       transparent: true,
@@ -474,7 +516,8 @@ function buildRings() {
 }
 
 function buildTrails() {
-  trails = Array.from({ length: 12 }, (_, index) => {
+  const trailCount = visualQuality === "software" ? 4 : visualQuality === "balanced" ? 7 : 12;
+  trails = Array.from({ length: trailCount }, (_, index) => {
     const radius = 0.9 + seeded(index + 60) * 1.65;
     const arc = 0.18 + seeded(index + 81) * 0.44;
     const start = seeded(index + 102) * TAU;
@@ -1320,6 +1363,18 @@ function resize() {
 }
 
 let lastAnimationFrame = 0;
+let averageFrameCost = 0;
+let slowFrameStreak = 0;
+
+function lowerVisualQuality() {
+  if (visualQuality === "software") return;
+  visualQuality = visualQuality === "full" ? "balanced" : "software";
+  root.dataset.visualQuality = visualQuality;
+  averageFrameCost = 0;
+  slowFrameStreak = 0;
+  updateMotionProfile();
+  renderer.setSize(Math.max(window.innerWidth, 1), Math.max(window.innerHeight, 1), false);
+}
 
 function animate(now = 0) {
   if (!canvas.isConnected || disposed) {
@@ -1329,9 +1384,11 @@ function animate(now = 0) {
   if (visualsPaused || document.hidden) return;
 
   const reducedMotion = Boolean(reducedMotionQuery?.matches);
-  const targetFps = limitedHardware
-    ? (window.innerWidth <= 760 ? 18 : 24)
-    : (window.innerWidth <= 760 ? 24 : 30);
+  const targetFps = visualQuality === "software"
+    ? (window.innerWidth <= 760 ? 10 : 12)
+    : visualQuality === "balanced"
+      ? (window.innerWidth <= 760 ? 15 : 18)
+      : (window.innerWidth <= 760 ? 24 : 30);
   const targetFrameInterval = 1000 / targetFps;
 
   if (!reducedMotion && now - lastAnimationFrame < targetFrameInterval) {
@@ -1339,7 +1396,9 @@ function animate(now = 0) {
     return;
   }
 
+  const frameGap = lastAnimationFrame ? now - lastAnimationFrame : targetFrameInterval;
   lastAnimationFrame = now;
+  const frameStartedAt = performance.now();
   const time = reducedMotion ? 0 : now * 0.001;
   pointer.x = lerp(pointer.x, pointer.tx, 0.075);
   pointer.y = lerp(pointer.y, pointer.ty, 0.075);
@@ -1351,6 +1410,15 @@ function animate(now = 0) {
   updateRings(time);
   updateSigil(time);
   renderer.render(scene, camera);
+  if (visualQuality !== "software" && !reducedMotion) {
+    const frameCost = performance.now() - frameStartedAt;
+    averageFrameCost = averageFrameCost ? lerp(averageFrameCost, frameCost, 0.08) : frameCost;
+    const missedFrame = frameGap > targetFrameInterval * 1.8;
+    slowFrameStreak = averageFrameCost > 15 || missedFrame
+      ? slowFrameStreak + 1
+      : Math.max(0, slowFrameStreak - 1);
+    if (slowFrameStreak >= 8) lowerVisualQuality();
+  }
   if (reducedMotion) {
     animationTimer = window.setTimeout(() => {
       if (!visualsPaused && !document.hidden && !disposed) {
@@ -1386,6 +1454,7 @@ function boot() {
   buildRings();
   buildTrails();
   buildParticles();
+  root.dataset.visualQuality = visualQuality;
   root.classList.add("is-runtime-ready");
   setupEvents();
   setupRevealObserver();

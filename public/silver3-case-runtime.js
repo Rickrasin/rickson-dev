@@ -8,16 +8,36 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
 
   const root = document.documentElement;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const limitedHardware = Boolean(
+
+  function hasMajorGraphicsCaveat() {
+    const probe = document.createElement("canvas");
+    try {
+      const contextOptions = { failIfMajorPerformanceCaveat: true };
+      const context = probe.getContext("webgl2", contextOptions) || probe.getContext("webgl", contextOptions);
+      if (!context) return true;
+      const debugInfo = context.getExtension("WEBGL_debug_renderer_info");
+      const rendererName = debugInfo
+        ? context.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+        : context.getParameter(context.RENDERER);
+      const softwareRenderer = /swiftshader|llvmpipe|softpipe|software|microsoft basic render|mesa offscreen/i.test(String(rendererName));
+      context.getExtension("WEBGL_lose_context")?.loseContext();
+      return softwareRenderer;
+    } catch {
+      return true;
+    }
+  }
+
+  const resourceLimited = Boolean(
     navigator.connection?.saveData ||
     (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
     (navigator.deviceMemory && navigator.deviceMemory <= 4)
   );
-  const pixelRatioCap = () => window.innerWidth < 760 || limitedHardware ? 1 : 1.25;
+  let visualQuality = hasMajorGraphicsCaveat() ? "software" : resourceLimited ? "balanced" : "full";
+  const pixelRatioCap = () => visualQuality === "software" ? 0.65 : visualQuality === "balanced" ? 0.85 : window.innerWidth < 760 ? 1 : 1.25;
   const renderer = new THREE.WebGLRenderer({
     canvas,
     alpha: true,
-    antialias: true,
+    antialias: visualQuality === "full",
     powerPreference: "high-performance"
   });
   renderer.setClearColor(0x000000, 0);
@@ -239,6 +259,8 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   let resizeFrame = 0;
   let disposed = false;
   let visualsPaused = document.hidden || root.classList.contains("is-route-transitioning");
+  let averageFrameCost = 0;
+  let slowFrameStreak = 0;
 
   const sectionPalette = {
     "case-intro": ["238 187 70", "95 143 160", "79 140 121"],
@@ -412,14 +434,18 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     }
     if (visualsPaused || document.hidden) return;
 
-    const targetFps = limitedHardware
-      ? (window.innerWidth < 760 ? 18 : 24)
-      : (window.innerWidth < 760 ? 24 : 30);
+    const targetFps = visualQuality === "software"
+      ? (window.innerWidth < 760 ? 10 : 12)
+      : visualQuality === "balanced"
+        ? (window.innerWidth < 760 ? 15 : 18)
+        : (window.innerWidth < 760 ? 24 : 30);
     if (!reducedMotion && now - lastRenderedAt < 1000 / targetFps) {
       frameId = requestAnimationFrame(animate);
       return;
     }
 
+    const frameGap = lastRenderedAt ? now - lastRenderedAt : 1000 / targetFps;
+    const frameStartedAt = performance.now();
     const delta = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
     lastRenderedAt = now;
@@ -427,6 +453,21 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     updateThemeColors(delta);
     updateRune(now / 1000, motionDelta);
     renderer.render(scene, camera);
+    if (visualQuality !== "software" && !reducedMotion) {
+      const frameCost = performance.now() - frameStartedAt;
+      averageFrameCost = averageFrameCost ? THREE.MathUtils.lerp(averageFrameCost, frameCost, 0.08) : frameCost;
+      const missedFrame = frameGap > 1000 / targetFps * 1.8;
+      slowFrameStreak = averageFrameCost > 15 || missedFrame
+        ? slowFrameStreak + 1
+        : Math.max(0, slowFrameStreak - 1);
+      if (slowFrameStreak >= 8) {
+        visualQuality = visualQuality === "full" ? "balanced" : "software";
+        root.dataset.visualQuality = visualQuality;
+        averageFrameCost = 0;
+        slowFrameStreak = 0;
+        resize();
+      }
+    }
     if (reducedMotion) {
       animationTimer = window.setTimeout(() => {
         if (!visualsPaused && !document.hidden && !disposed) {
@@ -528,6 +569,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   }
 
   root.classList.add("is-case-runtime-ready");
+  root.dataset.visualQuality = visualQuality;
   resize();
   setSection("case-intro");
   updateActiveSection();

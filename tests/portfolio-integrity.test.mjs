@@ -52,6 +52,8 @@ test("performance safeguards keep browser work under control", () => {
   assert.doesNotMatch(combinedSource, /\bunoptimized\b/, "portfolio images must use responsive optimization");
   assert.match(combinedSource, /strategy="lazyOnload"/, "visual runtimes must load without blocking initial interaction");
   assert.match(combinedSource, /portfolio-visuals-pause/, "route changes must pause continuous visual work");
+  assert.match(combinedSource, /visualQuality/, "visual runtimes must expose their adaptive quality mode");
+  assert.match(combinedSource, /failIfMajorPerformanceCaveat/, "visual runtimes must detect software rendering when possible");
   assert.doesNotMatch(combinedSource, /assets\/three\.module\.js/, "visual runtimes must not load the unminified Three.js build");
 });
 
