@@ -1,4 +1,10 @@
 .routeTransition {
+  --route-veil-early: 0.38;
+  --route-veil-mid: 0.88;
+  --route-veil-half: 0.62;
+  --route-veil-peak: 0.96;
+  --route-vignette-mid: 0.58;
+  --route-vignette-peak: 0.88;
   position: fixed;
   inset: 0;
   z-index: 10000;
@@ -9,6 +15,15 @@
   contain: strict;
 }
 
+:global(:root[data-theme="light"]) .routeTransition {
+  --route-veil-early: 0.14;
+  --route-veil-mid: 0.24;
+  --route-veil-half: 0.16;
+  --route-veil-peak: 0.3;
+  --route-vignette-mid: 0.12;
+  --route-vignette-peak: 0.22;
+}
+
 .routeTransition[data-phase="leaving"],
 .routeTransition[data-phase="arriving"] {
   visibility: visible;
@@ -16,7 +31,6 @@
 
 .veil,
 .originGlow,
-.apexFlash,
 .vignette {
   position: absolute;
   inset: 0;
@@ -40,16 +54,6 @@
   will-change: opacity, transform;
 }
 
-.apexFlash {
-  inset: -18%;
-  background:
-    radial-gradient(circle at 50% 50%, color-mix(in srgb, white 12%, var(--gold)) 0 1%, color-mix(in srgb, var(--gold) 18%, transparent) 9%, transparent 31%),
-    conic-gradient(from 45deg at 50% 50%, transparent 0 23%, color-mix(in srgb, var(--gold) 8%, transparent) 26%, transparent 30% 73%, color-mix(in srgb, var(--cyan) 7%, transparent) 77%, transparent 81%);
-  filter: blur(8px);
-  transform: scale(0.42) rotate(-8deg);
-  will-change: opacity, transform;
-}
-
 .vignette {
   background: radial-gradient(ellipse at center, transparent 18%, color-mix(in srgb, var(--page-bg) 82%, transparent) 100%);
 }
@@ -62,20 +66,12 @@
   animation: originGlow 780ms cubic-bezier(0.2, 0.76, 0.24, 1) both;
 }
 
-.routeTransition[data-phase="leaving"] .apexFlash {
-  animation: apexIn 1550ms cubic-bezier(0.32, 0, 0.12, 1) both;
-}
-
 .routeTransition[data-phase="leaving"] .vignette {
   animation: vignetteIn 1550ms ease both;
 }
 
 .routeTransition[data-phase="arriving"] .veil {
   animation: veilOut 1250ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.routeTransition[data-phase="arriving"] .apexFlash {
-  animation: apexOut 1250ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .routeTransition[data-phase="arriving"] .vignette {
@@ -95,14 +91,14 @@
 
 @keyframes veilIn {
   0% { opacity: 0; }
-  24% { opacity: 0.38; }
-  72% { opacity: 0.88; }
-  100% { opacity: 0.96; }
+  24% { opacity: var(--route-veil-early); }
+  72% { opacity: var(--route-veil-mid); }
+  100% { opacity: var(--route-veil-peak); }
 }
 
 @keyframes veilOut {
-  0%, 14% { opacity: 0.96; }
-  52% { opacity: 0.62; }
+  0%, 14% { opacity: var(--route-veil-peak); }
+  52% { opacity: var(--route-veil-half); }
   100% { opacity: 0; }
 }
 
@@ -112,26 +108,14 @@
   100% { opacity: 0; transform: scale(1.26); }
 }
 
-@keyframes apexIn {
-  0%, 58% { opacity: 0; transform: scale(0.42) rotate(-8deg); }
-  82% { opacity: 0.28; }
-  100% { opacity: 0.46; transform: scale(1.26) rotate(7deg); }
-}
-
-@keyframes apexOut {
-  0% { opacity: 0.46; transform: scale(1.26) rotate(7deg); }
-  26% { opacity: 0.18; }
-  100% { opacity: 0; transform: scale(2.1) rotate(18deg); }
-}
-
 @keyframes vignetteIn {
   0% { opacity: 0; }
-  68% { opacity: 0.58; }
-  100% { opacity: 0.88; }
+  68% { opacity: var(--route-vignette-mid); }
+  100% { opacity: var(--route-vignette-peak); }
 }
 
 @keyframes vignetteOut {
-  0% { opacity: 0.88; }
+  0% { opacity: var(--route-vignette-peak); }
   100% { opacity: 0; }
 }
 

@@ -201,7 +201,6 @@ export function MagicRouteTransition() {
     >
       <div className={styles.veil} />
       <div className={styles.originGlow} />
-      <div className={styles.apexFlash} />
       <div className={styles.vignette} />
     </div>
   );
