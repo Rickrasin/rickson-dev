@@ -4289,24 +4289,6 @@ h1 {
   line-height: 1.72;
 }
 
-.project-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 28px;
-}
-
-.project-tags > span {
-  padding: 8px 11px;
-  color: var(--muted-strong);
-  font-family: var(--font-mono), monospace;
-  font-size: 0.69rem;
-  line-height: 1;
-  letter-spacing: 0.03em;
-  background: color-mix(in srgb, var(--surface) 72%, transparent);
-  border: 1px solid var(--line);
-}
-
 .project-action {
   display: inline-flex;
   align-items: center;
@@ -4668,21 +4650,6 @@ a.project-card:focus-visible .project-card__media > img {
   animation: project-energy-scan 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.project-tags > span {
-  transition:
-    color 260ms var(--ease),
-    background 260ms var(--ease),
-    border-color 260ms var(--ease),
-    box-shadow 260ms var(--ease);
-}
-
-.project-primary:hover .project-tags > span,
-.project-primary:focus-visible .project-tags > span {
-  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
-  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
-  box-shadow: inset 0 0 18px color-mix(in srgb, var(--accent) 5%, transparent);
-}
-
 .project-card::before {
   position: absolute;
   z-index: 4;
@@ -4813,15 +4780,6 @@ a.project-card:focus-visible::before {
   .project-primary p {
     font-size: 0.93rem;
     line-height: 1.68;
-  }
-
-  .project-tags {
-    margin-top: 24px;
-  }
-
-  .project-tags > span {
-    padding: 7px 9px;
-    font-size: 0.64rem;
   }
 
   .project-action {

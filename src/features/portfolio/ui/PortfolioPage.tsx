@@ -338,11 +338,6 @@ function ProjectsSection() {
               solicitações, responsáveis, SLAs, histórico e comunicação. A superfície web já
               opera em produção; o aplicativo móvel está em homologação sobre o mesmo core.
             </p>
-            <div aria-label="Componentes da plataforma Silver3" className="project-tags">
-              <span data-i18n="cases.one.tag.web">Web em produção</span>
-              <span data-i18n="cases.one.tag.core">Core compartilhado</span>
-              <span data-i18n="cases.one.tag.mobile">App em homologação</span>
-            </div>
             <span className="project-action">
               <span data-i18n="cases.one.cta">Ver estudo de caso</span>
               <SpriteIcon id="icon-arrow" />
