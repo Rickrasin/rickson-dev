@@ -4274,8 +4274,19 @@ h1 {
   background: color-mix(in srgb, var(--accent) 62%, transparent);
 }
 
+.project-client {
+  display: block;
+  margin-top: 18px;
+  color: var(--muted);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .project-primary h3 {
-  margin: 22px 0 18px;
+  margin: 10px 0 18px;
   font-size: clamp(2.75rem, 4.8vw, 4.2rem);
   line-height: 0.96;
   letter-spacing: -0.045em;
@@ -4375,7 +4386,7 @@ h1 {
   right: 6%;
   bottom: 7%;
   width: min(25%, 148px);
-  border-radius: 12px;
+  border-radius: 0;
 }
 
 .project-primary:hover .project-primary__web,

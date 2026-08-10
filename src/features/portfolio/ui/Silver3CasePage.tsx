@@ -30,45 +30,45 @@ const copy = {
     languageLabel: "Trocar idioma para inglês",
     themeLabel: "Alternar tema",
     hero: {
-      eyebrow: "Case de produto · Gestão de chamados de TI",
+      eyebrow: "Projeto para a Silver3",
       title: "Suporte organizado, do primeiro contato ao fechamento.",
       body:
-        "Projetei e desenvolvi o Silver3 como uma única plataforma de gerenciamento de chamados: superfície web em produção, core ativo e aplicativo móvel candidato a release para homologação.",
+        "Projetei e desenvolvi para a Silver3 uma plataforma de gestão de chamados de TI com ambiente web e aplicativo móvel, criada para organizar todo o fluxo de suporte interno em um só lugar.",
       primary: "Conhecer o projeto",
       secondary: "Falar sobre um sistema",
-      scene: "Portal web e aplicativo móvel da Silver3"
+      scene: "Portal web e aplicativo móvel da solução desenvolvida para a Silver3"
     },
     problem: {
       label: "// 01. O problema",
-      title: "De solicitações dispersas a uma operação mensurável.",
+      title: "De solicitações dispersas a uma operação sob controle.",
       body:
-        "Sem um registro central de chamados, era difícil enxergar o volume de trabalho, organizar prioridades, definir responsáveis, recuperar o histórico de um problema e medir o desempenho da equipe. O cliente também dependia de contato manual para acompanhar cada solicitação.",
+        "Com uma plataforma, a empresa deixa de depender de mensagens e planilhas soltas para organizar o suporte interno. Os chamados entram em uma fila única, cada etapa tem responsáveis e histórico, e solicitantes, técnicos e gestores acompanham o andamento sem depender de atualizações manuais.",
       items: [
-        ["Demandas sem fila única", "Solicitações dispersas dificultavam saber quanto trabalho existia e o que precisava ser atendido primeiro."],
-        ["Responsabilidade difícil de acompanhar", "Sem atribuição e histórico centralizados, mudanças de responsável podiam perder contexto."],
-        ["Pouca visibilidade e medição", "Clientes dependiam de atualizações manuais e a gestão tinha pouca base para analisar volume, prazos e gargalos."]
+        ["Uma fila para toda a operação", "Todos os chamados seguem o mesmo fluxo, organizados por prioridade, SLA, cliente e responsável."],
+        ["Responsabilidade com contexto", "Cada chamado mostra quem está atendendo, o que já foi feito e quando a responsabilidade mudou."],
+        ["Visibilidade para acompanhar e decidir", "Quem solicita acompanha o andamento do chamado, enquanto a gestão enxerga volume, prazos, SLAs e gargalos da operação."]
       ]
     },
     delivery: {
       label: "// 02. O que eu entreguei",
-      title: "Um produto. Um core. Duas superfícies.",
+      title: "Diferentes experiências. Uma única plataforma.",
       body:
-        "O Silver3 é uma única plataforma funcional. Web e mobile adaptam a experiência ao contexto de uso; o core mantém identidades, permissões, regras, chamados, dados e histórico consistentes entre as duas superfícies.",
+        "A solução desenvolvida para a Silver3 reúne um ambiente web e um aplicativo móvel em uma única plataforma. Web e mobile dão acesso ao mesmo fluxo de chamados, mas organizam a navegação e a apresentação das informações de acordo com a tela e o contexto de uso. A API conecta as duas interfaces e unifica identidades, permissões, regras e dados em um só lugar.",
       platforms: [
         {
           code: "WEB",
-          title: "Operação no navegador",
-          body: "Superfície em produção para solicitantes, técnicos e gestores, com chamados, clientes, SLAs, relatórios, notificações e administração por permissão."
-        },
-        {
-          code: "CORE",
-          title: "Regras e dados compartilhados",
-          body: "API principal ativa para identidade, autorização, ciclo dos chamados, mensagens, anexos, SLAs, notificações, relatórios e integrações."
+          title: "Gestão simples no navegador",
+          body: "Telas claras e fáceis de usar para solicitantes, técnicos e gestores abrirem, acompanharem e administrarem chamados com eficiência, aproveitando o espaço e a praticidade do navegador."
         },
         {
           code: "MOBILE",
-          title: "Operação no aparelho",
-          body: "Aplicativo Android e iOS candidato a release para homologação e testes fechados, usando as mesmas identidades, regras, chamados e histórico."
+          title: "Chamados em qualquer lugar",
+          body: "A mesma operação em um aplicativo para Android e iOS, com abertura, acompanhamento e atendimento de chamados, anexos e notificações em uma experiência adaptada ao celular."
+        },
+        {
+          code: "API",
+          title: "Núcleo da plataforma",
+          body: "Camada central que conecta web e mobile e unifica identidades, permissões, regras, chamados, mensagens, anexos, SLAs, notificações e histórico em um só lugar."
         }
       ]
     },
@@ -76,7 +76,7 @@ const copy = {
       label: "// 03. A experiência",
       title: "Cada pessoa vê o que precisa. O fluxo continua o mesmo.",
       body:
-        "A superfície web dá amplitude para administrar a operação. O aplicativo aproxima o atendimento de quem está em campo. O core mantém os dois lados coerentes.",
+        "A superfície web dá amplitude para administrar a operação. O aplicativo aproxima o atendimento de quem está em campo. A API mantém os dois lados coerentes.",
       steps: [
         ["01", "Registrar", "O chamado nasce ligado ao cliente, local e solicitantes corretos."],
         ["02", "Priorizar", "Tipo, categoria, prioridade e SLA orientam o próximo passo."],
@@ -104,8 +104,8 @@ const copy = {
       label: "// 05. Resultado",
       title: "Uma operação em uso, com evolução contínua.",
       body:
-        "A superfície web já opera em produção e o core sustenta o fluxo real de chamados. O aplicativo cobre a operação móvel e segue como candidato a release para homologação e testes fechados, com pendências de distribuição e validação final.",
-      stats: [["WEB", "em produção"], ["CORE", "ativo"], ["APP", "em homologação"]],
+        "A superfície web já opera em produção e a API sustenta o fluxo real de chamados. O aplicativo cobre a operação móvel e segue como candidato a release para homologação e testes fechados, com pendências de distribuição e validação final.",
+      stats: [["WEB", "em produção"], ["API", "ativa"], ["APP", "em homologação"]],
       ctaEyebrow: "Tem uma operação que ainda depende de ferramentas espalhadas?",
       ctaTitle: "Posso transformar esse fluxo em um sistema sob medida.",
       cta: "Conversar sobre o projeto"
@@ -118,41 +118,41 @@ const copy = {
     languageLabel: "Switch language to Portuguese",
     themeLabel: "Toggle theme",
     hero: {
-      eyebrow: "Product case · IT ticket management",
+      eyebrow: "Project for Silver3",
       title: "Organized support, from first contact to resolution.",
       body:
-        "I designed and developed Silver3 as a single ticket management platform: a web surface in production, an active core, and a mobile app ready for closed validation.",
+        "I designed and developed an IT ticket management platform for Silver3 with a web environment and mobile app, created to organize the entire internal support workflow in one place.",
       primary: "Explore the project",
       secondary: "Discuss a system",
-      scene: "Silver3 web portal and mobile application"
+      scene: "Web portal and mobile application developed for Silver3"
     },
     problem: {
       label: "// 01. The problem",
-      title: "From scattered requests to a measurable operation.",
+      title: "From scattered requests to an operation under control.",
       body:
-        "Without a central ticket record, it was difficult to see workload, organize priorities, assign ownership, recover issue history, and measure team performance. Clients also depended on manual contact to track each request.",
+        "With a platform, the company no longer depends on messages and scattered spreadsheets to organize internal support. Tickets enter a single queue, each stage has clear ownership and history, and requesters, technicians, and managers can follow progress without relying on manual updates.",
       items: [
-        ["No single queue", "Scattered requests made it hard to understand workload and decide what needed attention first."],
-        ["Ownership was hard to track", "Without centralized assignment and history, ownership changes could lose context."],
-        ["Limited visibility and measurement", "Clients relied on manual updates while management lacked reliable data on volume, deadlines, and bottlenecks."]
+        ["One queue for the entire operation", "Every ticket follows the same workflow, organized by priority, SLA, client, and owner."],
+        ["Ownership with context", "Each ticket shows who is handling it, what has been done, and when ownership changed."],
+        ["Visibility to track and decide", "Requesters track ticket progress while management sees volume, deadlines, SLAs, and operational bottlenecks."]
       ]
     },
     delivery: {
       label: "// 02. What I delivered",
-      title: "One product. One core. Two surfaces.",
+      title: "Different experiences. One platform.",
       body:
-        "Silver3 is a single functional platform. Web and mobile adapt the experience to each context while the core keeps identity, permissions, rules, tickets, data, and history consistent across both surfaces.",
+        "The solution developed for Silver3 brings together a web environment and a mobile app in a single platform. Web and mobile provide access to the same ticket workflow while organizing navigation and information for each screen and context of use. The API connects both interfaces and unifies identities, permissions, rules, and data in one place.",
       platforms: [
-        { code: "WEB", title: "Browser operations", body: "A production surface for requesters, technicians, and managers, with tickets, clients, SLAs, reports, notifications, and permission-based administration." },
-        { code: "CORE", title: "Shared rules and data", body: "An active primary API for identity, authorization, ticket lifecycle, messages, attachments, SLAs, notifications, reports, and integrations." },
-        { code: "MOBILE", title: "Operations on the go", body: "An Android and iOS release candidate for validation and closed testing, using the same identities, rules, tickets, and history." }
+        { code: "WEB", title: "Simple browser management", body: "Clear, easy-to-use screens for requesters, technicians, and managers to open, track, and manage tickets efficiently while taking advantage of the space and convenience of the browser." },
+        { code: "MOBILE", title: "Tickets anywhere", body: "The same operation in an Android and iOS app, with ticket creation, tracking and service, attachments, and notifications in an experience adapted to mobile screens." },
+        { code: "API", title: "Platform core", body: "The central layer that connects web and mobile and unifies identities, permissions, rules, tickets, messages, attachments, SLAs, notifications, and history in one place." }
       ]
     },
     workflow: {
       label: "// 03. The experience",
       title: "Each person sees what they need. The workflow stays the same.",
       body:
-        "The web surface provides room to manage the operation. The app brings service closer to people in the field. The core keeps both sides consistent.",
+        "The web surface provides room to manage the operation. The app brings service closer to people in the field. The API keeps both sides consistent.",
       steps: [
         ["01", "Register", "The ticket starts connected to the correct client, location, and requesters."],
         ["02", "Prioritize", "Type, category, priority, and SLA guide the next step."],
@@ -180,8 +180,8 @@ const copy = {
       label: "// 05. Outcome",
       title: "A live operation under continuous evolution.",
       body:
-        "The web surface is already in production and the core supports the real ticket workflow. The app covers mobile operations and remains a release candidate for validation and closed testing, with distribution and final validation work still pending.",
-      stats: [["WEB", "in production"], ["CORE", "active"], ["APP", "in validation"]],
+        "The web surface is already in production and the API supports the real ticket workflow. The app covers mobile operations and remains a release candidate for validation and closed testing, with distribution and final validation work still pending.",
+      stats: [["WEB", "in production"], ["API", "active"], ["APP", "in validation"]],
       ctaEyebrow: "Is your operation still spread across disconnected tools?",
       ctaTitle: "I can turn that workflow into a custom system.",
       cta: "Discuss the project"
@@ -191,8 +191,8 @@ const copy = {
 } as const;
 
 const galleryImages = [
-  { src: "/assets/cases/silver3/silver3-web-dashboard-local.png", width: 1280, height: 720, kind: "web" },
   { src: "/assets/cases/silver3/silver3-web-ticket-detail-clean-1920x1080.png", width: 1920, height: 1080, kind: "web" },
+  { src: "/assets/cases/silver3/silver3-dashboard-safe.png", width: 1600, height: 900, kind: "web" },
   { src: "/assets/cases/silver3/silver3-app-1280x2856.png", width: 1280, height: 2856, kind: "mobile" },
   { src: "/assets/cases/silver3/silver3-mobile-ticket-local.png", width: 1280, height: 2856, kind: "mobile" }
 ] as const;
@@ -285,7 +285,7 @@ export function Silver3CasePage() {
                 <span /><span /><span /><small>SILVER3 / SUPPORT</small>
               </div>
               <Image
-                alt={language === "en" ? "Silver3 operational support dashboard with fictional data" : "Painel operacional de suporte da Silver3 com dados fictícios"}
+                alt={language === "en" ? "Ticket management platform developed for Silver3 with fictional data" : "Plataforma de gestão de chamados desenvolvida para a Silver3 com dados fictícios"}
                 height={galleryImages[0].height}
                 priority
                 sizes="(max-width: 760px) 88vw, (max-width: 1120px) 76vw, 38vw"
@@ -296,7 +296,7 @@ export function Silver3CasePage() {
             </figure>
             <figure className={styles.heroMobileFrame}>
               <Image
-                alt={language === "en" ? "Silver3 mobile support dashboard with fictional data" : "Painel do aplicativo móvel da Silver3 com dados fictícios"}
+                alt={language === "en" ? "Mobile ticket management app developed for Silver3 with fictional data" : "Aplicativo móvel de gestão de chamados desenvolvido para a Silver3 com dados fictícios"}
                 height={galleryImages[2].height}
                 priority
                 sizes="(max-width: 760px) 28vw, (max-width: 1120px) 20vw, 9vw"
@@ -336,7 +336,7 @@ export function Silver3CasePage() {
           </div>
           <figure className={styles.dashboardPreview} data-reveal>
             <div className={styles.previewChrome}><span /><span /><span /><small>silver3 / support</small></div>
-            <Image alt={language === "en" ? "Silver3 support dashboard with fictional data" : "Painel do sistema de suporte da Silver3 com dados fictícios"} height={galleryImages[0].height} sizes="(max-width: 760px) 92vw, 78vw" src={galleryImages[0].src} unoptimized width={galleryImages[0].width} />
+            <Image alt={language === "en" ? "Ticket detail in the platform developed for Silver3 with fictional data" : "Detalhe de chamado na plataforma desenvolvida para a Silver3 com dados fictícios"} height={galleryImages[0].height} sizes="(max-width: 760px) 92vw, 78vw" src={galleryImages[0].src} unoptimized width={galleryImages[0].width} />
           </figure>
         </section>
 
@@ -355,7 +355,7 @@ export function Silver3CasePage() {
             {galleryImages.slice(1).map((image, index) => (
               <figure className={image.kind === "mobile" ? styles.mobilePreview : styles.webPreview} data-reveal key={image.src}>
                 <Image alt="" height={image.height} sizes={image.kind === "mobile" ? "(max-width: 760px) 68vw, 24vw" : "(max-width: 760px) 92vw, 54vw"} src={image.src} unoptimized width={image.width} />
-                <figcaption>{index === 0 ? "WEB / TICKETS" : `APP / 0${index}`}</figcaption>
+                <figcaption>{index === 0 ? "WEB / DASHBOARD" : `APP / 0${index}`}</figcaption>
               </figure>
             ))}
           </div>

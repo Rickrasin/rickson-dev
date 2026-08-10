@@ -332,11 +332,13 @@ function ProjectsSection() {
           <span aria-hidden="true" className="project-primary__field" />
           <div className="project-primary__copy">
             <span className="project-number">01</span>
-            <h3 data-i18n="cases.one.title">Silver3</h3>
+            <small className="project-client" data-i18n="cases.one.client">
+              Projeto para a Silver3
+            </small>
+            <h3 data-i18n="cases.one.title">Gestão de chamados</h3>
             <p data-i18n="cases.one.body">
-              Uma plataforma de gerenciamento de chamados de TI criada para centralizar
-              solicitações, responsáveis, SLAs, histórico e comunicação. A superfície web já
-              opera em produção; o aplicativo móvel está em homologação sobre o mesmo core.
+              Plataforma de gestão de chamados de TI criada para centralizar solicitações,
+              responsáveis, SLAs, histórico e comunicação.
             </p>
             <span className="project-action">
               <span data-i18n="cases.one.cta">Ver estudo de caso</span>
@@ -344,7 +346,7 @@ function ProjectsSection() {
             </span>
           </div>
           <div
-            aria-label="Prévias das versões web e mobile do Silver3 com dados fictícios"
+            aria-label="Prévias da solução web e mobile desenvolvida para a Silver3 com dados fictícios"
             className="project-primary__media"
             role="group"
           >
@@ -359,7 +361,7 @@ function ProjectsSection() {
             />
             <Image
               className="project-primary__phone"
-              alt="Painel do aplicativo Silver3 com dados fictícios"
+              alt="Painel do aplicativo desenvolvido para a Silver3 com dados fictícios"
               height={2856}
               sizes="(max-width: 760px) 24vw, (max-width: 1120px) 20vw, 11vw"
               src="/assets/cases/silver3/silver3-app-1280x2856.png"
@@ -409,7 +411,7 @@ function ProjectsSection() {
               <span className="project-card__coffee">
                 <SpriteIcon id="icon-coffee" />
               </span>
-              <strong>coffee break · 03</strong>
+              <strong data-i18n="cases.three.break">Pausa para o café · 03</strong>
             </div>
             <div className="project-card__copy">
               <div className="project-card__meta-row">

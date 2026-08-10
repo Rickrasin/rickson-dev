@@ -58,8 +58,13 @@ test("Silver3 links to a dedicated case without claiming unavailable capabilitie
   );
   assert.match(
     combinedSource,
-    /O Silver3 é uma única plataforma funcional/i,
+    /Diferentes experiências\. Uma única plataforma\./i,
     "Silver3 must be presented as one product rather than separate products"
+  );
+  assert.doesNotMatch(
+    combinedSource,
+    /O Silver3 é (?:uma|a) (?:plataforma|sistema)/i,
+    "Silver3 must be presented as the client rather than the product name"
   );
   assert.match(combinedSource, /Web[^\n]{0,80}em produção/i, "Silver3 must state the current Web status");
   assert.match(combinedSource, /app[^\n]{0,80}homologação/i, "Silver3 must state the current mobile status");

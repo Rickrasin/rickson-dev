@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Silver3CasePage } from "@/features/portfolio/ui/Silver3CasePage";
 
-const title = "Silver3 — Plataforma de chamados de TI";
+const title = "Gestão de chamados para a Silver3";
 const description =
-  "Case do Silver3, plataforma de gerenciamento de chamados de TI com superfície web em produção, core ativo e aplicativo móvel em homologação.";
+  "Case de uma plataforma de gestão de chamados de TI desenvolvida para a Silver3, com ambiente web, aplicativo móvel e uma API central.";
 
 export const metadata: Metadata = {
   title,
