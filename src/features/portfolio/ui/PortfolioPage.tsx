@@ -55,6 +55,13 @@ function SvgSprite() {
         <path d="M4 6h16v12H4z" />
         <path d="m4 7 8 6 8-6" />
       </symbol>
+      <symbol id="icon-coffee" viewBox="0 0 24 24">
+        <path d="M5 9h11v5.5A4.5 4.5 0 0 1 11.5 19h-2A4.5 4.5 0 0 1 5 14.5V9Z" />
+        <path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16" />
+        <path d="M8 5c0 1 1 1.2 1 2" />
+        <path d="M12 4c0 1.2 1 1.4 1 2.5" />
+        <path d="M4 21h15" />
+      </symbol>
     </svg>
   );
 }
@@ -175,12 +182,11 @@ function HeroSection() {
     <section aria-label="Apresentação" className="hero shell" data-section="hero" id="hero">
       <div className="hero-copy" data-reveal>
         <p className="hero-kicker" data-i18n="hero.kicker">
-          Rickson de Oliveira · Desenvolvimento Full Stack
+          Rickson de Oliveira · Desenvolvedor de software
         </p>
-        <h1 data-i18n="hero.title">Sistemas web sob medida para organizar sua operação.</h1>
+        <h1 data-i18n="hero.title">Sistemas sob medida.</h1>
         <p data-i18n="hero.body">
-          Desenvolvo soluções que centralizam informações, automatizam tarefas manuais e
-          transformam processos confusos em fluxos claros para o seu negócio.
+          Feitos para simplificar o trabalho, organizar informações e reduzir tarefas manuais.
         </p>
         <div className="hero-actions">
           <a className="button primary magnetic" href="#projects">
@@ -278,11 +284,11 @@ function ServiceSigil({ variant }: { variant: string }) {
 
 function WorkflowSection() {
   const steps = [
-    ["system", "services.one.title", "Converso com o cliente", "services.one.body", "Antes de pensar em código, entendo o contexto, a rotina e o problema que precisa ser resolvido."],
-    ["interface", "services.two.title", "Entendo o fluxo real", "services.two.body", "Organizo etapas, usuários, dados e pontos de dificuldade para enxergar onde o sistema pode ajudar."],
-    ["integration", "services.three.title", "Planejo a solução", "services.three.body", "Desenho um caminho simples para validar a solução antes de construir tudo."],
-    ["automation", "services.four.title", "Construo uma prévia", "services.four.body", "Desenvolvo o núcleo do sistema, conecto as partes principais e mostro algo real para testar."],
-    ["delivery", "services.five.title", "Ajusto e entrego", "services.five.body", "Refino com feedback, melhoro a experiência e preparo o sistema para uso no dia a dia."]
+    ["system", "services.one.title", "Entendo o desafio", "services.one.body", "Conheço seu cenário, sua rotina e o problema que realmente precisa ser resolvido."],
+    ["interface", "services.two.title", "Entendo como tudo funciona", "services.two.body", "Analiso como o trabalho acontece hoje e identifico o que pode funcionar melhor."],
+    ["integration", "services.three.title", "Defino o primeiro passo", "services.three.body", "Organizo as prioridades e defino com você o que faz sentido construir primeiro."],
+    ["automation", "services.four.title", "Construo a primeira versão", "services.four.body", "Desenvolvo o essencial, conecto as partes principais e entrego algo funcional para você testar."],
+    ["delivery", "services.five.title", "Refino e entrego", "services.five.body", "Ajusto a experiência com base no feedback e preparo o sistema para uso no dia a dia."]
   ];
 
   return (
@@ -312,122 +318,118 @@ function WorkflowSection() {
 function ProjectsSection() {
   return (
     <section className="projects shell" data-section="projects" id="projects">
-      <div className="section-lead split" data-reveal>
-        <div>
-          <span data-i18n="cases.label">{"// 03. Casos"}</span>
-          <h2 data-i18n="cases.title">Projetos criados para resolver problemas reais.</h2>
-          <p data-i18n="cases.body">
-            Sistemas, estudos e soluções que mostram minha forma de pensar, organizar processos e
-            transformar ideias em algo funcional.
-          </p>
-        </div>
-        <a className="inline-action magnetic" href="#contact">
-          <span data-i18n="cases.cta">Conversar sobre um projeto</span>
-          <SpriteIcon id="icon-arrow" />
-        </a>
+      <div className="section-lead projects-lead" data-reveal>
+        <span data-i18n="cases.label">{"// 03. Projetos"}</span>
+        <h2 data-i18n="cases.title">Projetos pensados para funcionar no mundo real.</h2>
+        <p data-i18n="cases.body">
+          Cada projeto parte de um desafio diferente, mas segue a mesma ideia: entender bem o
+          problema e construir algo que faça sentido no dia a dia.
+        </p>
       </div>
 
-      <div className="case-list">
-        <a className="case-row case-row--featured magnetic" data-reveal href="#contact">
-          <span className="case-index">01</span>
-          <div>
+      <div className="project-showcase">
+        <a className="project-primary magnetic" data-reveal data-route-transition href="/cases/silver3">
+          <span aria-hidden="true" className="project-primary__field" />
+          <div className="project-primary__copy">
+            <span className="project-number">01</span>
             <h3 data-i18n="cases.one.title">Silver3</h3>
             <p data-i18n="cases.one.body">
-              Plataforma de atendimento criada para organizar chamados de TI, clientes e operações
-              em um só fluxo. Além do sistema web, o Silver3 agora possui um aplicativo para Android
-              e iOS com painel, chamados, alertas, notificações e suporte a trabalho offline.
+              Uma plataforma de gerenciamento de chamados de TI criada para centralizar
+              solicitações, responsáveis, SLAs, histórico e comunicação. A superfície web já
+              opera em produção; o aplicativo móvel está em homologação sobre o mesmo core.
             </p>
-            <small className="case-platforms" data-i18n="cases.one.meta">
-              Plataforma web · Aplicativo Android e iOS
-            </small>
+            <div aria-label="Componentes da plataforma Silver3" className="project-tags">
+              <span data-i18n="cases.one.tag.web">Web em produção</span>
+              <span data-i18n="cases.one.tag.core">Core compartilhado</span>
+              <span data-i18n="cases.one.tag.mobile">App em homologação</span>
+            </div>
+            <span className="project-action">
+              <span data-i18n="cases.one.cta">Ver estudo de caso</span>
+              <SpriteIcon id="icon-arrow" />
+            </span>
           </div>
           <div
-            aria-label="Prévias sanitizadas das versões web e mobile do Silver3"
-            className="case-media case-media--silver3"
+            aria-label="Prévias das versões web e mobile do Silver3 com dados fictícios"
+            className="project-primary__media"
             role="group"
           >
             <Image
-              className="case-media__web"
-              alt="Painel sanitizado do Silver3"
-              height={428}
-              sizes="(max-width: 760px) 84vw, (max-width: 1120px) 44vw, 24vw"
-              src="/assets/cases/silver3/silver3-dashboard-safe-thumb.png"
-              width={760}
+              className="project-primary__web"
+              alt="Tela de detalhes de um chamado no sistema web Silver3"
+              height={1080}
+              sizes="(max-width: 760px) 82vw, (max-width: 1120px) 70vw, 44vw"
+              src="/assets/cases/silver3/silver3-web-ticket-detail-clean-1920x1080.png"
+              unoptimized
+              width={1920}
             />
             <Image
-              className="case-media__phone"
+              className="project-primary__phone"
               alt="Painel do aplicativo Silver3 com dados fictícios"
-              height={900}
-              sizes="(max-width: 760px) 40vw, 8vw"
-              src="/assets/cases/silver3/silver3-mobile-dashboard-safe.png"
-              width={430}
-            />
-            <Image
-              className="case-media__phone"
-              alt="Lista de chamados do aplicativo Silver3 com dados fictícios"
-              height={900}
-              sizes="(max-width: 760px) 40vw, 8vw"
-              src="/assets/cases/silver3/silver3-mobile-tickets-safe.png"
-              width={430}
+              height={2856}
+              sizes="(max-width: 760px) 24vw, (max-width: 1120px) 20vw, 11vw"
+              src="/assets/cases/silver3/silver3-app-1280x2856.png"
+              unoptimized
+              width={1280}
             />
           </div>
-          <SpriteIcon id="icon-arrow" />
         </a>
 
-        <a
-          className="case-row case-row--featured magnetic"
-          data-reveal
-          href="https://www.tifuns.com"
-          rel="noreferrer"
-          target="_blank"
-        >
-          <span className="case-index">02</span>
-          <div>
-            <h3 data-i18n="cases.two.title">Tifuns</h3>
-            <p data-i18n="cases.two.body">
-              Portal editorial sobre games, animes e e-sports, criado para publicar notícias, guias
-              e destaques em uma experiência web escura, responsiva e direta de navegar.
-            </p>
-          </div>
-          <div aria-label="Prévia do site Tifuns" className="case-media" role="group">
-            <Image
-              alt="Página inicial do Tifuns"
-              height={900}
-              sizes="(max-width: 900px) 84vw, 36vw"
-              src="/assets/cases/tifuns/tifuns-home.png"
-              width={1440}
-            />
-            <Image
-              alt="Versão mobile do Tifuns"
-              height={1688}
-              sizes="(max-width: 900px) 84vw, 28vw"
-              src="/assets/cases/tifuns/tifuns-mobile.png"
-              width={780}
-            />
-            <Image
-              alt="Lista de conteúdos do Tifuns"
-              height={900}
-              sizes="(max-width: 900px) 84vw, 36vw"
-              src="/assets/cases/tifuns/tifuns-section.png"
-              width={1440}
-            />
-          </div>
-          <SpriteIcon id="icon-arrow" />
-        </a>
+        <div className="project-secondary-grid">
+          <a
+            className="project-card magnetic"
+            data-reveal
+            href="https://www.tifuns.com"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <div className="project-card__media">
+              <Image
+                alt="Página inicial do Tifuns"
+                height={900}
+                sizes="(max-width: 760px) 88vw, 42vw"
+                src="/assets/cases/tifuns/tifuns-home.png"
+                width={1440}
+              />
+            </div>
+            <div className="project-card__copy">
+              <div className="project-card__meta-row">
+                <span className="project-number">02</span>
+                <small data-i18n="cases.two.meta">Projeto autoral · Em desenvolvimento</small>
+              </div>
+              <h3 data-i18n="cases.two.title">Tifuns</h3>
+              <p data-i18n="cases.two.body">
+                Projeto autoral de um portal sobre games, animes e e-sports, criado para explorar
+                identidade visual, organização de conteúdo e uma experiência responsiva de leitura.
+              </p>
+              <span className="project-action">
+                <span data-i18n="cases.two.cta">Visitar projeto</span>
+                <SpriteIcon id="icon-arrow" />
+              </span>
+            </div>
+          </a>
 
-        <a className="case-row magnetic" data-reveal href="#contact">
-          <span className="case-index">03</span>
-          <div>
-            <h3 data-i18n="cases.three.title">Rickson.dev</h3>
-            <p data-i18n="cases.three.body">
-              Meu próprio portfólio também é um projeto: marca pessoal, narrativa, animações, versão
-              bilíngue e uma experiência visual criada para apresentar meu trabalho com personalidade,
-              sem esconder o conteúdo atrás dos efeitos.
-            </p>
-          </div>
-          <small data-i18n="cases.three.meta">Marca pessoal · front-end · WebGL</small>
-          <SpriteIcon id="icon-arrow" />
-        </a>
+          <article className="project-card project-card--placeholder" data-reveal>
+            <div aria-hidden="true" className="project-card__media project-card__coming-soon">
+              <span className="project-card__coming-orbit" />
+              <span className="project-card__coffee">
+                <SpriteIcon id="icon-coffee" />
+              </span>
+              <strong>coffee break · 03</strong>
+            </div>
+            <div className="project-card__copy">
+              <div className="project-card__meta-row">
+                <span className="project-number">03</span>
+                <small data-i18n="cases.three.meta">Próximo da fila</small>
+              </div>
+              <h3 data-i18n="cases.three.title">Em breve</h3>
+              <p data-i18n="cases.three.body">
+                Prepare um café e relaxe. O próximo projeto ainda está sendo preparado — e eu prefiro
+                não servir nada pela metade.
+              </p>
+            </div>
+          </article>
+        </div>
+
       </div>
     </section>
   );
@@ -451,7 +453,7 @@ function AboutSection() {
           />
         </figure>
         <div className="about-copy">
-          <h2 data-i18n="about.title">Olá, sou o Rickson, desenvolvedor full stack.</h2>
+          <h2 data-i18n="about.title">Olá, sou o Rickson, desenvolvedor de software.</h2>
           <p data-i18n="about.body">
             Crio sistemas web sob medida para ajudar empresas e profissionais a organizarem melhor
             seus processos, centralizarem informações e reduzirem tarefas manuais no dia a dia.
@@ -486,13 +488,15 @@ function ContactSection() {
         <div className="contact-actions booking-actions">
           <a
             className="contact-line contact-line--featured magnetic"
-            href="mailto:contato@rickson.dev?subject=Conversa%20sobre%20projeto%20-%20Rickson.dev"
+            href="https://cal.com/rickras/30min"
+            rel="noopener noreferrer"
+            target="_blank"
           >
             <SpriteIcon id="icon-spark" />
             <span>
-              <strong data-i18n="contact.schedule">Quero organizar um processo</strong>
+              <strong data-i18n="contact.schedule">Agendar uma conversa</strong>
               <small data-i18n="contact.schedule.note">
-                Me conte o que está lento, manual ou espalhado hoje.
+                Escolha um horário de 30 minutos para falarmos sobre seu projeto.
               </small>
             </span>
           </a>
@@ -503,7 +507,7 @@ function ContactSection() {
           <a
             className="contact-line magnetic"
             href="https://www.linkedin.com/in/ricksondev/"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             target="_blank"
           >
             <SpriteIcon id="icon-arrow" />

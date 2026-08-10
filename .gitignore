@@ -13,3 +13,11 @@ pnpm-debug.log*
 *.tsbuildinfo
 .DS_Store
 Thumbs.db
+
+.vercel
+
+# Capturas intermediárias do Silver3 que não fazem parte do site publicado
+public/assets/cases/silver3/silver3-mobile-dashboard-local.png
+public/assets/cases/silver3/silver3-web-1920x1080.png
+public/assets/cases/silver3/silver3-web-ticket-detail-1920x1080.png
+public/assets/cases/silver3/silver3-web-ticket-local.png

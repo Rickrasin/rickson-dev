@@ -7,6 +7,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: SITE.url,
       changeFrequency: "monthly",
       priority: 1
+    },
+    {
+      url: `${SITE.url}/cases/silver3`,
+      changeFrequency: "monthly",
+      priority: 0.8
     }
   ];
 }

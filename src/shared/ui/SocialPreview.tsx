@@ -46,7 +46,7 @@ export function SocialPreview() {
             Rickson de Oliveira
           </div>
           <div style={{ color: "#b9bfbc", display: "flex", fontSize: 31 }}>
-            Desenvolvimento Full Stack · Sistemas web sob medida
+            Desenvolvedor de software · Sistemas sob medida
           </div>
         </div>
         <div style={{ alignItems: "center", display: "flex", gap: 14 }}>

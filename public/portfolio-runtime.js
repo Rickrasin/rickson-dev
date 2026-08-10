@@ -1,7 +1,10 @@
 import * as THREE from "./assets/three.module.js";
 
+function bootPortfolioRuntime() {
 const root = document.documentElement;
 const canvas = document.getElementById("magic-canvas");
+if (!canvas || canvas.dataset.runtimeActive === "true") return;
+canvas.dataset.runtimeActive = "true";
 const stage = document.getElementById("sigil-anchor");
 const languageToggle = document.getElementById("language-toggle");
 const languageLabel = languageToggle?.querySelector("[data-language-label]");
@@ -10,9 +13,15 @@ const reveals = document.querySelectorAll("[data-reveal]");
 const chapterLinks = document.querySelectorAll("[data-section-target]");
 const sectionNodes = [...document.querySelectorAll("[data-section]")];
 const magneticItems = document.querySelectorAll(".magnetic");
+const runtimeController = new AbortController();
+const runtimeSignal = runtimeController.signal;
 const languageGlyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>/{}[]#$%&*+";
 let languageScrambleToken = 0;
 let textScrambleToken = 0;
+let revealObserver = null;
+let animationFrame = 0;
+let animationTimer = 0;
+let disposed = false;
 
 const TAU = Math.PI * 2;
 const clamp = (value, min = 0, max = 1) => Math.min(Math.max(value, min), max);
@@ -30,47 +39,52 @@ const copy = {
     "nav.about": "Sobre",
     "nav.contact": "Contato",
     "header.cta": "Falar sobre projeto",
-    "hero.kicker": "Rickson de Oliveira · Desenvolvimento Full Stack",
-    "hero.title": "Sistemas web sob medida para organizar sua operação.",
-    "hero.body": "Desenvolvo soluções que centralizam informações, automatizam tarefas manuais e transformam processos confusos em fluxos claros para o seu negócio.",
+    "hero.kicker": "Rickson de Oliveira · Desenvolvedor de software",
+    "hero.title": "Sistemas sob medida.",
+    "hero.body": "Feitos para simplificar o trabalho, organizar informações e reduzir tarefas manuais.",
     "hero.primary": "Ver projetos",
     "hero.secondary": "Conversar sobre um sistema",
     "hero.scroll": "Role para explorar",
     "services.label": "// 02. Fluxo",
     "services.title": "Meu fluxo de trabalho.",
     "services.body": "Trabalho em etapas simples: entendo o problema, organizo o fluxo, construo uma primeira versão e ajusto com feedback até a solução ficar clara, funcional e pronta para uso.",
-    "services.one.title": "Converso com o cliente",
-    "services.one.body": "Antes de pensar em código, entendo o contexto, a rotina e o problema que precisa ser resolvido.",
-    "services.two.title": "Entendo o fluxo real",
-    "services.two.body": "Organizo etapas, usuários, dados e pontos de dificuldade para enxergar onde o sistema pode ajudar.",
-    "services.three.title": "Planejo a solução",
-    "services.three.body": "Desenho um caminho simples para validar a solução antes de construir tudo.",
-    "services.four.title": "Construo uma prévia",
-    "services.four.body": "Desenvolvo o núcleo do sistema, conecto as partes principais e mostro algo real para testar.",
-    "services.five.title": "Ajusto e entrego",
-    "services.five.body": "Refino com feedback, melhoro a experiência e preparo o sistema para uso no dia a dia.",
-    "cases.label": "// 03. Casos",
-    "cases.title": "Projetos criados para resolver problemas reais.",
-    "cases.body": "Sistemas, estudos e soluções que mostram minha forma de pensar, organizar processos e transformar ideias em algo funcional.",
-    "cases.cta": "Conversar sobre um projeto",
+    "services.one.title": "Entendo o desafio",
+    "services.one.body": "Conheço seu cenário, sua rotina e o problema que realmente precisa ser resolvido.",
+    "services.two.title": "Entendo como tudo funciona",
+    "services.two.body": "Analiso como o trabalho acontece hoje e identifico o que pode funcionar melhor.",
+    "services.three.title": "Defino o primeiro passo",
+    "services.three.body": "Organizo as prioridades e defino com você o que faz sentido construir primeiro.",
+    "services.four.title": "Construo a primeira versão",
+    "services.four.body": "Desenvolvo o essencial, conecto as partes principais e entrego algo funcional para você testar.",
+    "services.five.title": "Refino e entrego",
+    "services.five.body": "Ajusto a experiência com base no feedback e preparo o sistema para uso no dia a dia.",
+    "cases.label": "// 03. Projetos",
+    "cases.title": "Projetos pensados para funcionar no mundo real.",
+    "cases.body": "Cada projeto parte de um desafio diferente, mas segue a mesma ideia: entender bem o problema e construir algo que faça sentido no dia a dia.",
+    "cases.cta": "Vamos falar sobre seu projeto",
     "cases.one.title": "Silver3",
-    "cases.one.body": "Plataforma de atendimento criada para organizar chamados de TI, clientes e operações em um só fluxo. Além do sistema web, o Silver3 agora possui um aplicativo para Android e iOS com painel, chamados, alertas, notificações e suporte a trabalho offline.",
-    "cases.one.meta": "Plataforma web · Aplicativo Android e iOS",
+    "cases.one.body": "Uma plataforma de gerenciamento de chamados de TI criada para centralizar solicitações, responsáveis, SLAs, histórico e comunicação. A superfície web já opera em produção; o aplicativo móvel está em homologação sobre o mesmo core.",
+    "cases.one.tag.web": "Web em produção",
+    "cases.one.tag.core": "Core compartilhado",
+    "cases.one.tag.mobile": "App em homologação",
+    "cases.one.cta": "Ver estudo de caso",
     "cases.two.title": "Tifuns",
-    "cases.two.body": "Portal editorial sobre games, animes e e-sports, criado para publicar notícias, guias e destaques em uma experiência web escura, responsiva e direta de navegar.",
-    "cases.three.title": "Rickson.dev",
-    "cases.three.body": "Meu próprio portfólio também é um projeto: marca pessoal, narrativa, animações, versão bilíngue e uma experiência visual criada para apresentar meu trabalho com personalidade, sem esconder o conteúdo atrás dos efeitos.",
-    "cases.three.meta": "Marca pessoal · front-end · WebGL",
+    "cases.two.body": "Projeto autoral de um portal sobre games, animes e e-sports, criado para explorar identidade visual, organização de conteúdo e uma experiência responsiva de leitura.",
+    "cases.two.meta": "Projeto autoral · Em desenvolvimento",
+    "cases.two.cta": "Visitar projeto",
+    "cases.three.title": "Em breve",
+    "cases.three.body": "Prepare um café e relaxe. O próximo projeto ainda está sendo preparado — e eu prefiro não servir nada pela metade.",
+    "cases.three.meta": "Próximo da fila",
     "about.label": "// 04. Sobre",
-    "about.title": "Olá, sou o Rickson, desenvolvedor full stack.",
+    "about.title": "Olá, sou o Rickson, desenvolvedor de software.",
     "about.body": "Crio sistemas web sob medida para ajudar empresas e profissionais a organizarem melhor seus processos, centralizarem informações e reduzirem tarefas manuais no dia a dia.",
     "about.detail": "Gosto de entender de perto a rotina de cada cliente antes de desenvolver qualquer solução. Assim, consigo transformar problemas reais em ferramentas simples, funcionais e fáceis de usar.",
     "about.close": "Meu trabalho é transformar rotinas confusas em sistemas que as pessoas realmente conseguem usar no dia a dia.",
     "contact.label": "// 05. Contato",
     "contact.title": "Vamos tirar sua ideia do papel?",
     "contact.body": "Se você tem algum projeto em mente, um processo lento ou uma rotina manual, posso te ajudar a transformar isso numa solução clara e funcional.",
-    "contact.schedule": "Quero organizar um processo",
-    "contact.schedule.note": "Me conte o que está lento, manual ou espalhado hoje.",
+    "contact.schedule": "Agendar uma conversa",
+    "contact.schedule.note": "Escolha um horário de 30 minutos para falarmos sobre seu projeto.",
     "contact.email": "Enviar um contexto por e-mail",
     "contact.linkedin": "Me chamar no LinkedIn",
   },
@@ -81,47 +95,52 @@ const copy = {
     "nav.about": "About",
     "nav.contact": "Contact",
     "header.cta": "Discuss a project",
-    "hero.kicker": "Rickson de Oliveira · Full Stack Development",
-    "hero.title": "Custom web systems to organize your operation.",
-    "hero.body": "I build solutions that centralize information, automate manual tasks, and turn confusing processes into clear workflows for your business.",
+    "hero.kicker": "Rickson de Oliveira · Software Developer",
+    "hero.title": "Custom-built systems.",
+    "hero.body": "Built to simplify work, organize information, and reduce manual tasks.",
     "hero.primary": "See projects",
     "hero.secondary": "Talk about a system",
     "hero.scroll": "Scroll to explore",
     "services.label": "// 02. Workflow",
     "services.title": "My work process.",
     "services.body": "I work in simple stages: understand the problem, organize the flow, build a first version, and adjust with feedback until the solution is clear, functional, and ready to use.",
-    "services.one.title": "I talk to the client",
-    "services.one.body": "Before thinking about code, I understand the context, the routine, and the problem that needs to be solved.",
-    "services.two.title": "I understand the real flow",
-    "services.two.body": "I organize steps, users, data, and friction points to see where the system can help.",
-    "services.three.title": "I plan the solution",
-    "services.three.body": "I design a simple path to validate the solution before building everything.",
-    "services.four.title": "I build a preview",
-    "services.four.body": "I develop the system core, connect the main parts, and show something real to test.",
-    "services.five.title": "I adjust and deliver",
-    "services.five.body": "I refine with feedback, improve the experience, and prepare the system for daily use.",
-    "cases.label": "// 03. Cases",
-    "cases.title": "Projects built to solve real problems.",
-    "cases.body": "Systems, studies, and solutions that show how I think, organize processes, and turn ideas into something functional.",
-    "cases.cta": "Talk about a project",
+    "services.one.title": "I understand the challenge",
+    "services.one.body": "I get to know your situation, your routine, and the problem that really needs to be solved.",
+    "services.two.title": "I understand how it all works",
+    "services.two.body": "I analyze how the work is done today and identify what could work better.",
+    "services.three.title": "I define the first step",
+    "services.three.body": "I organize the priorities and decide with you what makes sense to build first.",
+    "services.four.title": "I build the first version",
+    "services.four.body": "I develop the essentials, connect the main pieces, and deliver something functional for you to test.",
+    "services.five.title": "I refine and deliver",
+    "services.five.body": "I adjust the experience based on feedback and prepare the system for daily use.",
+    "cases.label": "// 03. Projects",
+    "cases.title": "Projects designed to work in the real world.",
+    "cases.body": "Each project starts from a different challenge, but follows the same idea: understand the problem well and build something that makes sense in everyday use.",
+    "cases.cta": "Let's talk about your project",
     "cases.one.title": "Silver3",
-    "cases.one.body": "A support platform built to organize IT requests, clients, and operations in one flow. Alongside the web system, Silver3 now includes an Android and iOS app with dashboards, tickets, alerts, notifications, and offline support.",
-    "cases.one.meta": "Web platform · Android and iOS app",
+    "cases.one.body": "An IT ticket management platform built to centralize requests, ownership, SLAs, history, and communication. The web surface is already in production; the mobile app is in validation on the same core.",
+    "cases.one.tag.web": "Web in production",
+    "cases.one.tag.core": "Shared core",
+    "cases.one.tag.mobile": "App in validation",
+    "cases.one.cta": "View case study",
     "cases.two.title": "Tifuns",
-    "cases.two.body": "An editorial portal about games, anime, and e-sports, built to publish news, guides, and highlights in a dark, responsive, easy-to-navigate web experience.",
-    "cases.three.title": "Rickson.dev",
-    "cases.three.body": "My own portfolio is also a project: personal brand, narrative, animations, bilingual structure, and a visual experience created to present my work with personality without hiding the content behind the effects.",
-    "cases.three.meta": "Personal brand · front-end · WebGL",
+    "cases.two.body": "An independent portal project about games, anime, and e-sports, created to explore visual identity, content organization, and a responsive reading experience.",
+    "cases.two.meta": "Independent project · In development",
+    "cases.two.cta": "Visit project",
+    "cases.three.title": "Coming soon",
+    "cases.three.body": "Make yourself a coffee and relax. The next project is still brewing — and I'd rather not serve anything half-finished.",
+    "cases.three.meta": "Next in line",
     "about.label": "// 04. About",
-    "about.title": "Hi, I'm Rickson, a full stack developer.",
+    "about.title": "Hi, I'm Rickson, a software developer.",
     "about.body": "I create custom web systems to help companies and professionals better organize their processes, centralize information, and reduce manual tasks in their daily work.",
     "about.detail": "I like to understand each client's routine up close before developing any solution. That way, I can turn real problems into simple, functional, and easy-to-use tools.",
     "about.close": "My work is to turn confusing routines into systems people can actually use every day.",
     "contact.label": "// 05. Contact",
     "contact.title": "Ready to bring your idea to life?",
     "contact.body": "If you have a project in mind, a slow process, or a manual routine, I can help turn it into a clear and functional solution.",
-    "contact.schedule": "Organize a process",
-    "contact.schedule.note": "Tell me what feels slow, manual, or scattered today.",
+    "contact.schedule": "Schedule a conversation",
+    "contact.schedule.note": "Choose a 30-minute time slot to talk about your project.",
     "contact.email": "Send some context by email",
     "contact.linkedin": "Message me on LinkedIn",
   },
@@ -1160,19 +1179,19 @@ function setupRevealObserver() {
     return;
   }
 
-  const observer = new IntersectionObserver(
+  revealObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add("is-visible");
-          observer.unobserve(entry.target);
+          revealObserver?.unobserve(entry.target);
         }
       });
     },
     { threshold: 0.16, rootMargin: "0px 0px -12% 0px" },
   );
 
-  reveals.forEach((element) => observer.observe(element));
+  reveals.forEach((element) => revealObserver.observe(element));
 }
 
 function setupMagneticMotion() {
@@ -1182,51 +1201,51 @@ function setupMagneticMotion() {
       const x = (event.clientX - rect.left) / rect.width - 0.5;
       const y = (event.clientY - rect.top) / rect.height - 0.5;
       item.style.transform = `translate(${x * 8}px, ${y * 6}px)`;
-    });
+    }, { signal: runtimeSignal });
     item.addEventListener("pointerleave", () => {
       item.style.transform = "";
-    });
+    }, { signal: runtimeSignal });
   });
 }
 
 function setupEvents() {
-  window.addEventListener("scroll", updateScroll, { passive: true });
-  window.addEventListener("resize", resize);
+  window.addEventListener("scroll", updateScroll, { passive: true, signal: runtimeSignal });
+  window.addEventListener("resize", resize, { signal: runtimeSignal });
   window.addEventListener("wheel", () => {
     if (navigationMotion.active) stopNavigationMotion();
-  }, { passive: true });
+  }, { passive: true, signal: runtimeSignal });
   window.addEventListener("touchstart", () => {
     if (navigationMotion.active) stopNavigationMotion();
-  }, { passive: true });
+  }, { passive: true, signal: runtimeSignal });
   window.addEventListener("keydown", (event) => {
     const scrollKeys = ["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "];
     if (navigationMotion.active && scrollKeys.includes(event.key)) stopNavigationMotion();
-  });
+  }, { signal: runtimeSignal });
   window.addEventListener("pointermove", (event) => {
     pointer.tx = (event.clientX / window.innerWidth - 0.5) * 2;
     pointer.ty = -(event.clientY / window.innerHeight - 0.5) * 2;
-  });
+  }, { signal: runtimeSignal });
 
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
     link.addEventListener("click", (event) => {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const hash = link.getAttribute("href");
       if (jumpToAnchor(hash)) event.preventDefault();
-    });
+    }, { signal: runtimeSignal });
   });
 
   languageToggle?.addEventListener("click", () => {
     setLanguage(languageToggle.dataset.activeLang === "en" ? "pt" : "en", { scramble: true });
-  });
+  }, { signal: runtimeSignal });
 
   themeToggle?.addEventListener("click", () => {
     setTheme(root.dataset.theme === "light" ? "dark" : "light");
-  });
+  }, { signal: runtimeSignal });
 
   reducedMotionQuery?.addEventListener?.("change", () => {
     updateMotionProfile();
     resize();
-  });
+  }, { signal: runtimeSignal });
 }
 
 function resize() {
@@ -1243,11 +1262,16 @@ function resize() {
 let lastAnimationFrame = 0;
 
 function animate(now = 0) {
+  if (!canvas.isConnected || disposed) {
+    dispose();
+    return;
+  }
+
   const reducedMotion = Boolean(reducedMotionQuery?.matches);
   const targetFrameInterval = window.innerWidth <= 760 ? 1000 / 30 : 1000 / 45;
 
   if (!reducedMotion && now - lastAnimationFrame < targetFrameInterval) {
-    requestAnimationFrame(animate);
+    animationFrame = requestAnimationFrame(animate);
     return;
   }
 
@@ -1264,10 +1288,29 @@ function animate(now = 0) {
   updateSigil(time);
   renderer.render(scene, camera);
   if (reducedMotion) {
-    window.setTimeout(() => requestAnimationFrame(animate), 250);
+    animationTimer = window.setTimeout(() => {
+      animationFrame = requestAnimationFrame(animate);
+    }, 250);
   } else {
-    requestAnimationFrame(animate);
+    animationFrame = requestAnimationFrame(animate);
   }
+}
+
+function dispose() {
+  if (disposed) return;
+  disposed = true;
+  cancelAnimationFrame(animationFrame);
+  cancelAnimationFrame(navigationMotion.frame);
+  window.clearTimeout(animationTimer);
+  runtimeController.abort();
+  revealObserver?.disconnect();
+  scene.traverse((object) => {
+    object.geometry?.dispose?.();
+    if (Array.isArray(object.material)) object.material.forEach((material) => material.dispose());
+    else object.material?.dispose?.();
+  });
+  renderer.dispose();
+  root.classList.remove("is-runtime-ready", "is-language-morphing");
 }
 
 function boot() {
@@ -1289,10 +1332,14 @@ function boot() {
 
   setLanguage(forcedLanguage === "en" || forcedLanguage === "pt" ? forcedLanguage : localStorage.getItem("rickson-portfolio-lang") || "pt");
   resize();
-  requestAnimationFrame(animate);
+  animationFrame = requestAnimationFrame(animate);
 }
 
 boot();
+}
+
+window.addEventListener("portfolio-runtime-mount", bootPortfolioRuntime);
+bootPortfolioRuntime();
 
 
 

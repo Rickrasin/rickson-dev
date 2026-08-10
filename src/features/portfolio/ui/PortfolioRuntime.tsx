@@ -1,12 +1,26 @@
 "use client";
 
-import Script from "next/script";
+import { useEffect } from "react";
+
+const runtimeSrc = "/portfolio-runtime.js?v=20260718-runtime-loader-2";
+const runtimeMountEvent = "portfolio-runtime-mount";
 
 export function PortfolioRuntime() {
+  useEffect(() => {
+    const mountFrame = window.requestAnimationFrame(() => {
+      window.dispatchEvent(new Event(runtimeMountEvent));
+    });
+
+    return () => {
+      window.cancelAnimationFrame(mountFrame);
+    };
+  }, []);
+
   return (
-    <Script
-      src="/portfolio-runtime.js?v=20260714-abstract-sigil"
-      strategy="afterInteractive"
+    <script
+      async
+      data-portfolio-runtime="true"
+      src={runtimeSrc}
       type="module"
     />
   );

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { MagicRouteTransition } from "@/features/portfolio/ui/MagicRouteTransition";
 import { SITE } from "@/shared/config/site";
 import "./globals.css";
 
@@ -30,6 +31,17 @@ export const metadata: Metadata = {
     title: SITE.title,
     description: SITE.description
   },
+  robots:
+    process.env.VERCEL_ENV && process.env.VERCEL_ENV !== "production"
+      ? {
+          index: false,
+          follow: false,
+          nocache: true
+        }
+      : {
+          index: true,
+          follow: true
+        },
   icons: {
     icon: [
       { url: "/assets/favicon.ico", sizes: "any" },
@@ -69,7 +81,10 @@ export default function RootLayout({
           suppressHydrationWarning
         />
       </head>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        {children}
+        <MagicRouteTransition />
+      </body>
     </html>
   );
 }
