@@ -396,7 +396,7 @@ export function Silver3CasePage() {
         onReady={() => {
           window.dispatchEvent(new Event("silver3-runtime-mount"));
         }}
-        src="/silver3-case-runtime.js?v=20260810-performance-2"
+        src="/silver3-case-runtime.js?v=20260810-performance-3"
         strategy="lazyOnload"
         type="module"
       />

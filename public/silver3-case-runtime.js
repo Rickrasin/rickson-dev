@@ -435,10 +435,10 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     if (visualsPaused || document.hidden) return;
 
     const targetFps = visualQuality === "software"
-      ? (window.innerWidth < 760 ? 10 : 12)
+      ? 20
       : visualQuality === "balanced"
-        ? (window.innerWidth < 760 ? 15 : 18)
-        : (window.innerWidth < 760 ? 24 : 30);
+        ? 30
+        : (window.innerWidth < 760 ? 30 : 60);
     if (!reducedMotion && now - lastRenderedAt < 1000 / targetFps) {
       frameId = requestAnimationFrame(animate);
       return;
@@ -448,7 +448,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     const frameStartedAt = performance.now();
     const delta = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
-    lastRenderedAt = now;
+    lastRenderedAt = now - (frameGap % (1000 / targetFps));
     const motionDelta = reducedMotion ? Math.min(delta, 0.008) : delta;
     updateThemeColors(delta);
     updateRune(now / 1000, motionDelta);

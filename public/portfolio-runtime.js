@@ -1385,10 +1385,10 @@ function animate(now = 0) {
 
   const reducedMotion = Boolean(reducedMotionQuery?.matches);
   const targetFps = visualQuality === "software"
-    ? (window.innerWidth <= 760 ? 10 : 12)
+    ? 20
     : visualQuality === "balanced"
-      ? (window.innerWidth <= 760 ? 15 : 18)
-      : (window.innerWidth <= 760 ? 24 : 30);
+      ? 30
+      : (window.innerWidth <= 760 ? 30 : 60);
   const targetFrameInterval = 1000 / targetFps;
 
   if (!reducedMotion && now - lastAnimationFrame < targetFrameInterval) {
@@ -1397,7 +1397,7 @@ function animate(now = 0) {
   }
 
   const frameGap = lastAnimationFrame ? now - lastAnimationFrame : targetFrameInterval;
-  lastAnimationFrame = now;
+  lastAnimationFrame = now - (frameGap % targetFrameInterval);
   const frameStartedAt = performance.now();
   const time = reducedMotion ? 0 : now * 0.001;
   pointer.x = lerp(pointer.x, pointer.tx, 0.075);
