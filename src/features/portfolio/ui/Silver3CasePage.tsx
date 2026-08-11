@@ -3,12 +3,25 @@
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
-import { useEffect, useSyncExternalStore } from "react";
+import type { MouseEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useSyncExternalStore } from "react";
 import styles from "./Silver3CasePage.module.css";
 
 type Language = "pt" | "en";
+type Theme = "dark" | "light";
 
 const languageEvent = "rickson-portfolio-language-change";
+const themeEvent = "rickson-portfolio-theme-change";
+const languageGlyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>/{}[]#$%&*+";
+const languageMorphSelector = "[data-s3-i18n]";
+
+const clamp = (value: number, min = 0, max = 1) => Math.min(Math.max(value, min), max);
+const lerp = (start: number, end: number, amount: number) => start + (end - start) * amount;
+
+function smoothstep(min: number, max: number, value: number) {
+  const progress = clamp((value - min) / Math.max(max - min, Number.EPSILON));
+  return progress * progress * (3 - 2 * progress);
+}
 
 function subscribeToLanguage(onStoreChange: () => void) {
   window.addEventListener("storage", onStoreChange);
@@ -21,6 +34,19 @@ function subscribeToLanguage(onStoreChange: () => void) {
 
 function getLanguageSnapshot(): Language {
   return window.localStorage.getItem("rickson-portfolio-lang") === "en" ? "en" : "pt";
+}
+
+function subscribeToTheme(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(themeEvent, onStoreChange);
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(themeEvent, onStoreChange);
+  };
+}
+
+function getThemeSnapshot(): Theme {
+  return document.documentElement.dataset.theme === "light" ? "light" : "dark";
 }
 
 const copy = {
@@ -201,13 +227,217 @@ function ArrowIcon() {
   return <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h13" /><path d="m13 6 6 6-6 6" /></svg>;
 }
 
+function ThemeToggle({ label, onClick, theme }: {
+  label: string;
+  onClick: (event: MouseEvent<HTMLButtonElement>) => void;
+  theme: Theme;
+}) {
+  return (
+    <button
+      aria-checked={theme === "light"}
+      aria-label={label}
+      className="theme-toggle"
+      data-theme={theme}
+      onClick={onClick}
+      role="switch"
+      type="button"
+    >
+      <span aria-hidden="true" className="theme-toggle__track">
+        <span className="theme-toggle__icon theme-toggle__icon--dark">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+            <path className="theme-toggle__moon-star" d="M19 2.5v5M16.5 5h5" />
+          </svg>
+        </span>
+        <span className="theme-toggle__icon theme-toggle__icon--light">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2" />
+            <path d="M12 20v2" />
+            <path d="M4.9 4.9 6.3 6.3" />
+            <path d="m17.7 17.7 1.4 1.4" />
+            <path d="M2 12h2" />
+            <path d="M20 12h2" />
+            <path d="m4.9 19.1 1.4-1.4" />
+            <path d="m17.7 6.3 1.4-1.4" />
+          </svg>
+        </span>
+        <span className="theme-toggle__thumb" />
+      </span>
+    </button>
+  );
+}
+
 export function Silver3CasePage() {
+  const pendingLanguageMorph = useRef<string[] | null>(null);
+  const languageMorphToken = useRef(0);
   const language = useSyncExternalStore(
     subscribeToLanguage,
     getLanguageSnapshot,
     (): Language => "pt"
   );
+  const theme = useSyncExternalStore(
+    subscribeToTheme,
+    getThemeSnapshot,
+    (): Theme => "dark"
+  );
   const content = copy[language];
+
+  useLayoutEffect(() => {
+    const sourceTexts = pendingLanguageMorph.current;
+    if (!sourceTexts) return;
+    pendingLanguageMorph.current = null;
+
+    const elements = [...document.querySelectorAll<HTMLElement>(languageMorphSelector)];
+    const root = document.documentElement;
+    const languageToggle = document.querySelector<HTMLElement>(".language-toggle");
+    const token = ++languageMorphToken.current;
+    const frameIds = new Set<number>();
+    const timeoutIds = new Set<number>();
+    const unlockers: Array<() => void> = [];
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const scheduleFrame = (callback: FrameRequestCallback) => {
+      const frameId = window.requestAnimationFrame((now) => {
+        frameIds.delete(frameId);
+        callback(now);
+      });
+      frameIds.add(frameId);
+    };
+
+    if (reducedMotion) {
+      elements.forEach((element) => element.classList.remove("is-text-morphing"));
+      root.classList.remove("is-language-morphing");
+      languageToggle?.classList.remove("is-scrambling");
+      return;
+    }
+
+    const morphs = elements.flatMap((element, index) => {
+      const sourceText = sourceTexts[index] ?? "";
+      const targetText = element.textContent ?? "";
+      if (sourceText === targetText) return [];
+
+      const computed = window.getComputedStyle(element);
+      const targetRect = element.getBoundingClientRect();
+      element.textContent = sourceText;
+      const sourceRect = element.getBoundingClientRect();
+      const width = Math.ceil(Math.max(sourceRect.width, targetRect.width));
+      const height = Math.ceil(Math.max(sourceRect.height, targetRect.height));
+      const previousStyles = {
+        display: element.style.display,
+        width: element.style.width,
+        minHeight: element.style.minHeight
+      };
+      const shouldLockWidth =
+        computed.display === "inline" ||
+        computed.display === "inline-block" ||
+        Boolean(element.closest(".header-cta, .button, .side-rail"));
+
+      if (shouldLockWidth && width > 0) {
+        if (computed.display === "inline") element.style.display = "inline-block";
+        element.style.width = `${width}px`;
+      }
+      if (height > 0) element.style.minHeight = `${height}px`;
+
+      unlockers.push(() => {
+        element.style.display = previousStyles.display;
+        element.style.width = previousStyles.width;
+        element.style.minHeight = previousStyles.minHeight;
+      });
+
+      return [{ element, index, sourceText, targetText }];
+    });
+
+    if (morphs.length === 0) return;
+
+    root.classList.add("is-language-morphing");
+    languageToggle?.classList.add("is-scrambling");
+    let remainingMorphs = morphs.length;
+
+    const finishMorph = (element: HTMLElement, targetText: string) => {
+      element.textContent = targetText;
+      element.classList.remove("is-text-morphing");
+      remainingMorphs -= 1;
+      if (remainingMorphs > 0 || token !== languageMorphToken.current) return;
+      root.classList.remove("is-language-morphing");
+      languageToggle?.classList.remove("is-scrambling");
+    };
+
+    morphs.forEach(({ element, index, sourceText, targetText }) => {
+      const originalLength = sourceText.length;
+      const targetLength = targetText.length;
+      const maxLength = Math.max(originalLength, targetLength, 1);
+      const duration = Math.min(1180, 760 + targetLength * 6);
+      const delay = element.closest(".side-rail, .topbar") ? index * 14 : Math.min(260, index * 24);
+      const startedAt = performance.now() + delay;
+      element.classList.add("is-text-morphing");
+
+      const glyphAt = (now: number, characterIndex: number) => {
+        const glyphIndex = Math.floor(
+          (now * 0.024 + characterIndex * 13 + token * 3 + sourceText.length) % languageGlyphs.length
+        );
+        return languageGlyphs[glyphIndex];
+      };
+
+      const tick = (now: number) => {
+        if (token !== languageMorphToken.current) return;
+        const progress = clamp((now - startedAt) / duration);
+        if (progress <= 0) {
+          scheduleFrame(tick);
+          return;
+        }
+
+        const lengthProgress = smoothstep(0.12, 0.84, progress);
+        const visibleLength = Math.max(1, Math.round(lerp(originalLength || targetLength, targetLength, lengthProgress)));
+        const band = Math.max(3, Math.round(maxLength * 0.2));
+        const wave = progress * (maxLength + band * 1.1);
+        const glyphStart = wave - band;
+        const glyphEnd = wave;
+        const isScrambling = progress > 0.035;
+
+        element.textContent = Array.from({ length: visibleLength }, (_, characterIndex) => {
+          const targetCharacter = targetText[characterIndex] || "";
+          const originalCharacter = sourceText[characterIndex] || "";
+          const spacingCharacter = targetCharacter || originalCharacter;
+          const isResolved = progress > 0.98 || characterIndex < glyphStart;
+          const isInWave = characterIndex <= glyphEnd;
+
+          if (!isScrambling && originalCharacter) return originalCharacter;
+          if (!targetCharacter) {
+            if (isResolved) return "";
+            return isInWave ? glyphAt(now, characterIndex) : originalCharacter;
+          }
+          if (/\s/.test(spacingCharacter)) return isResolved ? targetCharacter : " ";
+          if (/[.,:;!?()·]/.test(spacingCharacter)) {
+            return isResolved ? targetCharacter : glyphAt(now, characterIndex);
+          }
+          if (isResolved) return targetCharacter;
+          return isInWave ? glyphAt(now, characterIndex) : originalCharacter || glyphAt(now, characterIndex);
+        }).join("");
+
+        if (progress < 1) {
+          scheduleFrame(tick);
+          return;
+        }
+
+        finishMorph(element, targetText);
+      };
+
+      scheduleFrame(tick);
+    });
+
+    const unlockTimer = window.setTimeout(() => unlockers.forEach((unlock) => unlock()), 1600);
+    timeoutIds.add(unlockTimer);
+
+    return () => {
+      frameIds.forEach((frameId) => window.cancelAnimationFrame(frameId));
+      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      unlockers.forEach((unlock) => unlock());
+      morphs.forEach(({ element }) => element.classList.remove("is-text-morphing"));
+      root.classList.remove("is-language-morphing");
+      languageToggle?.classList.remove("is-scrambling");
+    };
+  }, [language]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -222,15 +452,51 @@ export function Silver3CasePage() {
 
   function toggleLanguage() {
     const next = language === "pt" ? "en" : "pt";
+    pendingLanguageMorph.current = [...document.querySelectorAll<HTMLElement>(languageMorphSelector)]
+      .map((element) => element.textContent ?? "");
     window.localStorage.setItem("rickson-portfolio-lang", next);
     window.dispatchEvent(new Event(languageEvent));
   }
 
-  function toggleTheme() {
+  function toggleTheme(event: MouseEvent<HTMLButtonElement>) {
     const root = document.documentElement;
     const next = root.dataset.theme === "light" ? "dark" : "light";
-    root.dataset.theme = next;
-    window.localStorage.setItem("rickson-portfolio-theme", next);
+    const applyTheme = () => {
+      root.dataset.theme = next;
+      window.localStorage.setItem("rickson-portfolio-theme", next);
+      window.dispatchEvent(new Event(themeEvent));
+    };
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReducedMotion || typeof document.startViewTransition !== "function") {
+      applyTheme();
+      return;
+    }
+
+    const toggleBounds = event.currentTarget.getBoundingClientRect();
+    const originX = toggleBounds.left + toggleBounds.width / 2;
+    const originY = toggleBounds.top + toggleBounds.height / 2;
+    const revealRadius = Math.hypot(
+      Math.max(originX, window.innerWidth - originX),
+      Math.max(originY, window.innerHeight - originY)
+    );
+    const clearTransitionProperties = () => {
+      root.style.removeProperty("--theme-transition-x");
+      root.style.removeProperty("--theme-transition-y");
+      root.style.removeProperty("--theme-transition-radius");
+    };
+
+    root.style.setProperty("--theme-transition-x", `${originX}px`);
+    root.style.setProperty("--theme-transition-y", `${originY}px`);
+    root.style.setProperty("--theme-transition-radius", `${revealRadius}px`);
+
+    try {
+      const transition = document.startViewTransition(applyTheme);
+      void transition.finished.finally(clearTransitionProperties);
+    } catch {
+      clearTransitionProperties();
+      applyTheme();
+    }
   }
 
   const sectionIds = ["case-intro", "case-problem", "case-delivery", "case-engineering", "case-result"];
@@ -247,14 +513,16 @@ export function Silver3CasePage() {
           {sectionIds.map((id, index) => (
             <a className={index === 0 ? "is-active" : undefined} data-case-nav={id} href={`#${id}`} key={id}>
               <span>{String(index + 1).padStart(2, "0")}</span>
-              <strong>{content.nav[index]}</strong>
+              <strong data-s3-i18n>{content.nav[index]}</strong>
             </a>
           ))}
         </nav>
         <div className="rail-foot">
-          <button aria-label={content.themeLabel} className="icon-button" onClick={toggleTheme} type="button"><span aria-hidden="true">◐</span></button>
+          <ThemeToggle label={content.themeLabel} onClick={toggleTheme} theme={theme} />
           <div className="language-toggle">
-            <button aria-label={content.languageLabel} className="is-active" onClick={toggleLanguage} type="button">{language.toUpperCase()}</button>
+            <button aria-label={content.languageLabel} className="is-active" onClick={toggleLanguage} type="button">
+              <span aria-hidden="true" className="language-toggle__text" data-s3-i18n>{language.toUpperCase()}</span>
+            </button>
           </div>
         </div>
       </aside>
@@ -262,19 +530,19 @@ export function Silver3CasePage() {
       <header className={`topbar ${styles.topbar}`}>
         <Link className="wordmark" href="/">Rickson<br />Dev</Link>
         <Link className={`button secondary header-cta magnetic ${styles.backButton}`} data-route-transition href="/#projects">
-          <span>← {content.back}</span>
+          <span data-s3-i18n>← {content.back}</span>
         </Link>
       </header>
 
       <main className={styles.main}>
         <section className={`shell ${styles.hero}`} data-case-section="case-intro" id="case-intro">
           <div className={styles.heroCopy} data-reveal>
-            <p className={styles.kicker}>{content.hero.eyebrow}</p>
-            <h1>{content.hero.title}</h1>
-            <p className={styles.heroBody}>{content.hero.body}</p>
+            <p className={styles.kicker} data-s3-i18n>{content.hero.eyebrow}</p>
+            <h1 data-s3-i18n>{content.hero.title}</h1>
+            <p className={styles.heroBody} data-s3-i18n>{content.hero.body}</p>
             <div className={styles.actions}>
-              <a className="button primary magnetic" href="#case-problem"><span>{content.hero.primary}</span><ArrowIcon /></a>
-              <a className="button secondary magnetic" href="mailto:contato@rickson.dev?subject=Projeto de sistema sob medida"><span>{content.hero.secondary}</span><ArrowIcon /></a>
+              <a className="button primary magnetic" href="#case-problem"><span data-s3-i18n>{content.hero.primary}</span><ArrowIcon /></a>
+              <a className="button secondary magnetic" href="mailto:contato@rickson.dev?subject=Projeto de sistema sob medida"><span data-s3-i18n>{content.hero.secondary}</span><ArrowIcon /></a>
             </div>
           </div>
 
@@ -307,27 +575,27 @@ export function Silver3CasePage() {
 
         <section className={`shell ${styles.problem}`} data-case-section="case-problem" id="case-problem">
           <div className={`section-lead split ${styles.sectionLead}`} data-reveal>
-            <div><span>{content.problem.label}</span><h2>{content.problem.title}</h2></div>
-            <p>{content.problem.body}</p>
+            <div><span data-s3-i18n>{content.problem.label}</span><h2 data-s3-i18n>{content.problem.title}</h2></div>
+            <p data-s3-i18n>{content.problem.body}</p>
           </div>
           <div className={styles.problemStrip}>
             {content.problem.items.map(([title, body], index) => (
-              <article data-reveal key={title}><span>0{index + 1}</span><h3>{title}</h3><p>{body}</p></article>
+              <article data-reveal key={title}><span>0{index + 1}</span><h3 data-s3-i18n>{title}</h3><p data-s3-i18n>{body}</p></article>
             ))}
           </div>
         </section>
 
         <section className={`shell ${styles.delivery}`} data-case-section="case-delivery" id="case-delivery">
           <div className={`section-lead ${styles.sectionLead}`} data-reveal>
-            <div><span>{content.delivery.label}</span><h2>{content.delivery.title}</h2></div>
-            <p>{content.delivery.body}</p>
+            <div><span data-s3-i18n>{content.delivery.label}</span><h2 data-s3-i18n>{content.delivery.title}</h2></div>
+            <p data-s3-i18n>{content.delivery.body}</p>
           </div>
           <div className={styles.platformList}>
             {content.delivery.platforms.map((platform) => (
               <article data-reveal key={platform.code}>
                 <span>{platform.code}</span>
-                <div><h3>{platform.title}</h3></div>
-                <p>{platform.body}</p>
+                <div><h3 data-s3-i18n>{platform.title}</h3></div>
+                <p data-s3-i18n>{platform.body}</p>
               </article>
             ))}
           </div>
@@ -339,15 +607,15 @@ export function Silver3CasePage() {
 
         <section className={`shell ${styles.workflow}`} data-case-section="case-workflow" id="case-workflow">
           <div className={`section-lead split ${styles.sectionLead}`} data-reveal>
-            <div><span>{content.workflow.label}</span><h2>{content.workflow.title}</h2></div>
-            <p>{content.workflow.body}</p>
+            <div><span data-s3-i18n>{content.workflow.label}</span><h2 data-s3-i18n>{content.workflow.title}</h2></div>
+            <p data-s3-i18n>{content.workflow.body}</p>
           </div>
           <ol className={styles.processLine}>
             {content.workflow.steps.map(([index, title, body]) => (
-              <li data-reveal key={index}><span>{index}</span><h3>{title}</h3><p>{body}</p></li>
+              <li data-reveal key={index}><span>{index}</span><h3 data-s3-i18n>{title}</h3><p data-s3-i18n>{body}</p></li>
             ))}
           </ol>
-          <p className={styles.demoNote}>{content.workflow.demo}</p>
+          <p className={styles.demoNote} data-s3-i18n>{content.workflow.demo}</p>
           <div className={styles.gallery}>
             {galleryImages.slice(1).map((image, index) => (
               <figure className={image.kind === "mobile" ? styles.mobilePreview : styles.webPreview} data-reveal key={image.src}>
@@ -360,16 +628,16 @@ export function Silver3CasePage() {
 
         <section className={`shell ${styles.engineering}`} data-case-section="case-engineering" id="case-engineering">
           <div className={`section-lead ${styles.sectionLead}`} data-reveal>
-            <div><span>{content.engineering.label}</span><h2>{content.engineering.title}</h2></div>
-            <p>{content.engineering.body}</p>
+            <div><span data-s3-i18n>{content.engineering.label}</span><h2 data-s3-i18n>{content.engineering.title}</h2></div>
+            <p data-s3-i18n>{content.engineering.body}</p>
           </div>
           <div className={styles.engineeringList}>
             {content.engineering.items.map(([title, body], index) => (
-              <article data-reveal key={title}><span>{String(index + 1).padStart(2, "0")}</span><h3>{title}</h3><p>{body}</p></article>
+              <article data-reveal key={title}><span>{String(index + 1).padStart(2, "0")}</span><h3 data-s3-i18n>{title}</h3><p data-s3-i18n>{body}</p></article>
             ))}
           </div>
           <div className={styles.stack} data-reveal>
-            <span>{content.engineering.stackLabel}</span>
+            <span data-s3-i18n>{content.engineering.stackLabel}</span>
             <ul>
               {content.engineering.stack.map((item) => <li key={item}>{item}</li>)}
             </ul>
@@ -378,20 +646,20 @@ export function Silver3CasePage() {
 
         <section className={`shell ${styles.result}`} data-case-section="case-result" id="case-result">
           <div className={styles.resultGrid} data-reveal>
-            <div><span>{content.result.label}</span><h2>{content.result.title}</h2><p>{content.result.body}</p></div>
+            <div><span data-s3-i18n>{content.result.label}</span><h2 data-s3-i18n>{content.result.title}</h2><p data-s3-i18n>{content.result.body}</p></div>
             <dl>
-              {content.result.stats.map(([value, label]) => <div key={value}><dt>{value}</dt><dd>{label}</dd></div>)}
+              {content.result.stats.map(([value, label]) => <div key={value}><dt>{value}</dt><dd data-s3-i18n>{label}</dd></div>)}
             </dl>
           </div>
           <div className={styles.cta} data-reveal>
-            <span>{content.result.ctaEyebrow}</span>
-            <h2>{content.result.ctaTitle}</h2>
-            <a className="button primary magnetic" href="mailto:contato@rickson.dev?subject=Conversa sobre sistema sob medida"><span>{content.result.cta}</span><ArrowIcon /></a>
+            <span data-s3-i18n>{content.result.ctaEyebrow}</span>
+            <h2 data-s3-i18n>{content.result.ctaTitle}</h2>
+            <a className="button primary magnetic" href="mailto:contato@rickson.dev?subject=Conversa sobre sistema sob medida"><span data-s3-i18n>{content.result.cta}</span><ArrowIcon /></a>
           </div>
         </section>
       </main>
 
-      <footer className={styles.footer}><span>{content.footer}</span><Link href="/">rickson.dev</Link></footer>
+      <footer className={styles.footer}><span data-s3-i18n>{content.footer}</span><Link href="/">rickson.dev</Link></footer>
       <Script
         onReady={() => {
           window.dispatchEvent(new Event("silver3-runtime-mount"));

@@ -79,7 +79,8 @@ function ThemeToggle() {
       <span aria-hidden="true" className="theme-toggle__track">
         <span className="theme-toggle__icon theme-toggle__icon--dark">
           <svg aria-hidden="true" viewBox="0 0 24 24">
-            <path d="M21 14.6A8.4 8.4 0 0 1 9.4 3 7.2 7.2 0 1 0 21 14.6Z" />
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+            <path className="theme-toggle__moon-star" d="M19 2.5v5M16.5 5h5" />
           </svg>
         </span>
         <span className="theme-toggle__icon theme-toggle__icon--light">
@@ -497,7 +498,7 @@ function ContactSection() {
           </a>
           <a className="contact-line magnetic" href="mailto:contato@rickson.dev">
             <SpriteIcon id="icon-mail" />
-            <span data-i18n="contact.email">Enviar um contexto por e-mail</span>
+            <span data-i18n="contact.email">Falar por e-mail</span>
           </a>
           <a
             className="contact-line magnetic"

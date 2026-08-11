@@ -18,6 +18,7 @@ const sourceFiles = [
 
 const sources = sourceFiles.map((file) => readFileSync(`${root}/${file}`, "utf8"));
 const combinedSource = sources.join("\n");
+const silver3Source = readFileSync(`${root}/src/features/portfolio/ui/Silver3CasePage.tsx`, "utf8");
 
 test("all referenced portfolio assets exist", () => {
   const assetReferences = new Set(combinedSource.match(/\/assets\/[A-Za-z0-9._/-]+/g) ?? []);
@@ -56,6 +57,24 @@ test("performance safeguards keep browser work under control", () => {
   assert.match(combinedSource, /failIfMajorPerformanceCaveat/, "visual runtimes must detect software rendering when possible");
   assert.ok((combinedSource.match(/const targetFps = 60/g) || []).length >= 2, "all visual profiles must target 60 FPS");
   assert.doesNotMatch(combinedSource, /assets\/three\.module\.js/, "visual runtimes must not load the unminified Three.js build");
+});
+
+test("fixed page chrome keeps a stable scrollbar gutter", () => {
+  assert.match(
+    combinedSource,
+    /scrollbar-gutter:\s*stable/,
+    "the viewport gutter must stay reserved to prevent fixed chrome layout shifts"
+  );
+});
+
+test("Silver3 keeps the character-by-character language morph", () => {
+  assert.match(silver3Source, /const languageGlyphs =/i, "Silver3 language glyphs are missing");
+  assert.match(silver3Source, /pendingLanguageMorph/i, "Silver3 does not preserve the outgoing copy");
+  assert.match(silver3Source, /requestAnimationFrame/i, "Silver3 language morph is not animated frame by frame");
+  assert.ok(
+    (silver3Source.match(/data-s3-i18n/g) || []).length >= 30,
+    "all visible Silver3 copy must participate in the language morph"
+  );
 });
 
 test("Silver3 links to a dedicated case without claiming unavailable capabilities", () => {

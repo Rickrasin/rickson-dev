@@ -23,6 +23,7 @@ let animationFrame = 0;
 let animationTimer = 0;
 let scrollUpdateFrame = 0;
 let resizeFrame = 0;
+let themeTransitionTimer = 0;
 let disposed = false;
 let visualsPaused = document.hidden || root.classList.contains("is-route-transitioning");
 const reducedMotionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
@@ -109,7 +110,7 @@ const copy = {
     "contact.body": "Se você tem algum projeto em mente, um processo lento ou uma rotina manual, posso te ajudar a transformar isso numa solução clara e funcional.",
     "contact.schedule": "Agendar uma conversa",
     "contact.schedule.note": "Escolha um horário de 30 minutos para falarmos sobre seu projeto.",
-    "contact.email": "Enviar um contexto por e-mail",
+    "contact.email": "Falar por e-mail",
     "contact.linkedin": "Me chamar no LinkedIn",
   },
   en: {
@@ -164,7 +165,7 @@ const copy = {
     "contact.body": "If you have a project in mind, a slow process, or a manual routine, I can help turn it into a clear and functional solution.",
     "contact.schedule": "Schedule a conversation",
     "contact.schedule.note": "Choose a 30-minute time slot to talk about your project.",
-    "contact.email": "Send some context by email",
+    "contact.email": "Email me",
     "contact.linkedin": "Message me on LinkedIn",
   },
 };
@@ -1222,7 +1223,7 @@ function setLanguage(lang, options = {}) {
   localStorage.setItem("rickson-portfolio-lang", lang);
 }
 
-function setTheme(theme) {
+function applyTheme(theme) {
   root.dataset.theme = theme;
   if (themeToggle) {
     themeToggle.dataset.theme = theme;
@@ -1231,6 +1232,70 @@ function setTheme(theme) {
   }
   localStorage.setItem("rickson-portfolio-theme", theme);
   updateFxVariables(true);
+}
+
+function playThemeTransitionSigil(originX, originY, theme) {
+  document.querySelector(".theme-transition-sigil")?.remove();
+  const sigil = document.createElement("span");
+  sigil.className = "theme-transition-sigil";
+  sigil.dataset.theme = theme;
+  sigil.setAttribute("aria-hidden", "true");
+  sigil.style.setProperty("--theme-transition-x", `${originX}px`);
+  sigil.style.setProperty("--theme-transition-y", `${originY}px`);
+  document.body.append(sigil);
+  sigil.addEventListener("animationend", () => sigil.remove(), { once: true });
+}
+
+function setTheme(theme, options = {}) {
+  const shouldAnimate = options.animate
+    && root.dataset.theme !== theme
+    && !reducedMotionQuery?.matches;
+
+  if (!shouldAnimate) {
+    applyTheme(theme);
+    return;
+  }
+
+  const toggleBounds = themeToggle?.getBoundingClientRect();
+  const originX = toggleBounds ? toggleBounds.left + toggleBounds.width / 2 : window.innerWidth / 2;
+  const originY = toggleBounds ? toggleBounds.top + toggleBounds.height / 2 : window.innerHeight / 2;
+
+  if (typeof document.startViewTransition !== "function") {
+    window.clearTimeout(themeTransitionTimer);
+    playThemeTransitionSigil(originX, originY, theme);
+    root.classList.add("is-theme-transitioning");
+    requestAnimationFrame(() => {
+      applyTheme(theme);
+      themeTransitionTimer = window.setTimeout(() => {
+        root.classList.remove("is-theme-transitioning");
+        themeTransitionTimer = 0;
+      }, 820);
+    });
+    return;
+  }
+
+  const revealRadius = Math.hypot(
+    Math.max(originX, window.innerWidth - originX),
+    Math.max(originY, window.innerHeight - originY),
+  );
+
+  root.style.setProperty("--theme-transition-x", `${originX}px`);
+  root.style.setProperty("--theme-transition-y", `${originY}px`);
+  root.style.setProperty("--theme-transition-radius", `${revealRadius}px`);
+
+  const clearTransitionProperties = () => {
+    root.style.removeProperty("--theme-transition-x");
+    root.style.removeProperty("--theme-transition-y");
+    root.style.removeProperty("--theme-transition-radius");
+  };
+
+  try {
+    const transition = document.startViewTransition(() => applyTheme(theme));
+    transition.finished.then(clearTransitionProperties, clearTransitionProperties);
+  } catch {
+    clearTransitionProperties();
+    applyTheme(theme);
+  }
 }
 
 function setupRevealObserver() {
@@ -1288,8 +1353,12 @@ function pauseVisuals() {
   visualsPaused = true;
   cancelAnimationFrame(animationFrame);
   window.clearTimeout(animationTimer);
+  window.clearTimeout(themeTransitionTimer);
+  document.querySelector(".theme-transition-sigil")?.remove();
+  root.classList.remove("is-theme-transitioning");
   animationFrame = 0;
   animationTimer = 0;
+  themeTransitionTimer = 0;
 }
 
 function resumeVisuals() {
@@ -1338,7 +1407,7 @@ function setupEvents() {
   }, { signal: runtimeSignal });
 
   themeToggle?.addEventListener("click", () => {
-    setTheme(root.dataset.theme === "light" ? "dark" : "light");
+    setTheme(root.dataset.theme === "light" ? "dark" : "light", { animate: true });
   }, { signal: runtimeSignal });
 
   reducedMotionQuery?.addEventListener?.("change", () => {
@@ -1450,6 +1519,7 @@ function dispose() {
   cancelAnimationFrame(scrollUpdateFrame);
   cancelAnimationFrame(resizeFrame);
   window.clearTimeout(animationTimer);
+  window.clearTimeout(themeTransitionTimer);
   runtimeController.abort();
   revealObserver?.disconnect();
   scene.traverse((object) => {
@@ -1458,7 +1528,8 @@ function dispose() {
     else object.material?.dispose?.();
   });
   renderer.dispose();
-  root.classList.remove("is-runtime-ready", "is-language-morphing");
+  document.querySelector(".theme-transition-sigil")?.remove();
+  root.classList.remove("is-runtime-ready", "is-language-morphing", "is-theme-transitioning");
 }
 
 function boot() {
