@@ -513,7 +513,7 @@ export function Silver3CasePage() {
           {sectionIds.map((id, index) => (
             <a className={index === 0 ? "is-active" : undefined} data-case-nav={id} href={`#${id}`} key={id}>
               <span>{String(index + 1).padStart(2, "0")}</span>
-              <strong data-s3-i18n>{content.nav[index]}</strong>
+              <strong>{content.nav[index]}</strong>
             </a>
           ))}
         </nav>

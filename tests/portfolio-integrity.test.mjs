@@ -75,6 +75,11 @@ test("Silver3 keeps the character-by-character language morph", () => {
     (silver3Source.match(/data-s3-i18n/g) || []).length >= 30,
     "all visible Silver3 copy must participate in the language morph"
   );
+  assert.doesNotMatch(
+    silver3Source,
+    /<strong data-s3-i18n>/,
+    "hidden rail labels must not become visible during the language morph"
+  );
 });
 
 test("Silver3 links to a dedicated case without claiming unavailable capabilities", () => {
