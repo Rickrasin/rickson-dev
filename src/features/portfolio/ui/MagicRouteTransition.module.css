@@ -1,10 +1,36 @@
 .routeTransition {
+  --route-veil-early: 0.38;
+  --route-veil-mid: 0.88;
+  --route-veil-half: 0.62;
+  --route-veil-peak: 0.96;
+  --route-vignette-mid: 0.58;
+  --route-vignette-peak: 0.88;
   position: fixed;
   inset: 0;
   z-index: 10000;
   visibility: hidden;
   overflow: hidden;
   pointer-events: none;
+  isolation: isolate;
+  contain: strict;
+}
+
+:global(:root[data-theme="light"]) .routeTransition {
+  --route-veil-early: 0.14;
+  --route-veil-mid: 0.24;
+  --route-veil-half: 0.16;
+  --route-veil-peak: 0.3;
+  --route-vignette-mid: 0.12;
+  --route-vignette-peak: 0.22;
+}
+
+:global(:root:not([data-theme="light"])) .routeTransition[data-direction="back"] {
+  --route-veil-early: 0.2;
+  --route-veil-mid: 0.5;
+  --route-veil-half: 0.3;
+  --route-veil-peak: 0.62;
+  --route-vignette-mid: 0.24;
+  --route-vignette-peak: 0.4;
 }
 
 .routeTransition[data-phase="leaving"],
@@ -13,7 +39,8 @@
 }
 
 .veil,
-.grid {
+.originGlow,
+.vignette {
   position: absolute;
   inset: 0;
   opacity: 0;
@@ -21,189 +48,84 @@
 
 .veil {
   background:
-    radial-gradient(circle at var(--route-origin-x) var(--route-origin-y), color-mix(in srgb, var(--gold) 14%, transparent), transparent 32%),
-    color-mix(in srgb, var(--page-bg) 95%, #020403 5%);
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--page-bg) 88%, transparent), color-mix(in srgb, var(--page-bg) 98%, #000 2%) 68%),
+    color-mix(in srgb, var(--page-bg) 96%, #000 4%);
+  will-change: opacity;
 }
 
-.grid {
-  background:
-    linear-gradient(to right, color-mix(in srgb, var(--gold) 7%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in srgb, var(--cyan) 6%, transparent) 1px, transparent 1px);
-  background-size: 72px 72px;
-  mask-image: radial-gradient(circle at center, #000, transparent 72%);
-}
-
-.routeTransition[data-phase="leaving"] .veil {
-  animation: veilIn 300ms cubic-bezier(0.32, 0, 0.18, 1) both;
-}
-
-.routeTransition[data-phase="leaving"] .grid {
-  animation: gridIn 300ms ease both;
-}
-
-.routeTransition[data-phase="arriving"] .veil,
-.routeTransition[data-phase="arriving"] .grid {
-  opacity: 1;
-  animation: veilOut 440ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.sigilWrap {
-  position: absolute;
-  top: var(--route-origin-y);
-  left: var(--route-origin-x);
-  width: clamp(220px, 34vw, 520px);
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%) scale(0.58);
-}
-
-.routeTransition[data-phase="leaving"] .sigilWrap {
-  animation: sigilGather 300ms cubic-bezier(0.32, 0, 0.18, 1) both;
-}
-
-.routeTransition[data-phase="arriving"] .sigilWrap {
-  top: 50%;
-  left: 50%;
-  animation: sigilRelease 440ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.sigil {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  fill: none;
-  stroke: var(--gold);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.15;
+.originGlow {
+  background: radial-gradient(
+    circle at var(--route-origin-x) var(--route-origin-y),
+    color-mix(in srgb, var(--gold) 22%, transparent) 0,
+    color-mix(in srgb, var(--cyan) 8%, transparent) 10%,
+    transparent 30%
+  );
   will-change: opacity, transform;
 }
 
-.homeSigil,
-.caseSigil {
-  transform-box: fill-box;
-  transform-origin: center;
+.vignette {
+  background: radial-gradient(ellipse at center, transparent 18%, color-mix(in srgb, var(--page-bg) 82%, transparent) 100%);
 }
 
-.caseSigil {
-  stroke: color-mix(in srgb, var(--gold) 72%, var(--cyan));
+.routeTransition[data-phase="leaving"] .veil {
+  animation: veilIn 1550ms cubic-bezier(0.32, 0, 0.12, 1) both;
 }
 
-.node {
-  fill: var(--page-bg);
-  stroke-width: 1.7;
+.routeTransition[data-phase="leaving"] .originGlow {
+  animation: originGlow 780ms cubic-bezier(0.2, 0.76, 0.24, 1) both;
 }
 
-.crystal {
-  fill: color-mix(in srgb, var(--gold) 8%, transparent);
-  stroke-width: 1.65;
+.routeTransition[data-phase="leaving"] .vignette {
+  animation: vignetteIn 1550ms ease both;
 }
 
-.routeTransition[data-direction="forward"][data-phase="leaving"] .homeSigil,
-.routeTransition[data-direction="back"][data-phase="leaving"] .caseSigil {
-  animation: oldSigilDissolve 300ms ease-in both;
+.routeTransition[data-phase="arriving"] .veil {
+  animation: veilOut 1250ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.routeTransition[data-direction="forward"][data-phase="leaving"] .caseSigil,
-.routeTransition[data-direction="back"][data-phase="leaving"] .homeSigil {
-  animation: newSigilForm 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+.routeTransition[data-phase="arriving"] .vignette {
+  animation: vignetteOut 1250ms ease both;
 }
 
-.routeTransition[data-direction="forward"][data-phase="arriving"] .homeSigil,
-.routeTransition[data-direction="back"][data-phase="arriving"] .caseSigil {
-  opacity: 0;
+:global(:root.is-route-transitioning #magic-canvas),
+:global(:root.is-route-transitioning #silver3-case-canvas),
+:global(:root.is-route-transition-settling #silver3-case-canvas) {
+  z-index: 10002 !important;
+  opacity: 1 !important;
 }
 
-.routeTransition[data-direction="forward"][data-phase="arriving"] .caseSigil,
-.routeTransition[data-direction="back"][data-phase="arriving"] .homeSigil {
-  opacity: 1;
-}
-
-.routeTransition[data-direction="forward"][data-phase="leaving"] .caseSigil path,
-.routeTransition[data-direction="back"][data-phase="leaving"] .homeSigil path {
-  stroke-dasharray: 280;
-  animation: drawSigil 270ms 30ms ease-out both;
-}
-
-.spark {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 5px;
-  height: 5px;
-  border: 1px solid var(--gold);
-  opacity: 0;
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-
-.routeTransition[data-phase="leaving"] .spark {
-  animation: sparkOrbit 300ms ease-out both;
-}
-
-.spark:nth-of-type(2) { --spark-x: 138px; --spark-y: -74px; animation-delay: 35ms !important; }
-.spark:nth-of-type(3) { --spark-x: -126px; --spark-y: 82px; animation-delay: 70ms !important; }
-.spark:nth-of-type(4) { --spark-x: 72px; --spark-y: 128px; animation-delay: 105ms !important; }
-.spark:nth-of-type(5) { --spark-x: -92px; --spark-y: -112px; animation-delay: 140ms !important; }
-
-:global(:root.is-route-transitioning) {
+:global(:root.is-route-transitioning) body:has(.routeTransition) {
   overflow: hidden;
 }
 
 @keyframes veilIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes gridIn {
-  from { opacity: 0; transform: scale(1.08); }
-  to { opacity: 0.75; transform: scale(1); }
+  0% { opacity: 0; }
+  24% { opacity: var(--route-veil-early); }
+  72% { opacity: var(--route-veil-mid); }
+  100% { opacity: var(--route-veil-peak); }
 }
 
 @keyframes veilOut {
-  0%, 42% { opacity: 1; }
-  to { opacity: 0; }
+  0%, 14% { opacity: var(--route-veil-peak); }
+  52% { opacity: var(--route-veil-half); }
+  100% { opacity: 0; }
 }
 
-@keyframes sigilGather {
-  from {
-    top: var(--route-origin-y);
-    left: var(--route-origin-x);
-    opacity: 0.35;
-    transform: translate(-50%, -50%) scale(0.52) rotate(-10deg);
-  }
-  to {
-    top: 50%;
-    left: 50%;
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1) rotate(0);
-  }
+@keyframes originGlow {
+  0% { opacity: 0; transform: scale(0.22); }
+  24% { opacity: 0.88; }
+  100% { opacity: 0; transform: scale(1.26); }
 }
 
-@keyframes sigilRelease {
-  from { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  to { opacity: 0; transform: translate(-50%, -50%) scale(1.34); }
+@keyframes vignetteIn {
+  0% { opacity: 0; }
+  68% { opacity: var(--route-vignette-mid); }
+  100% { opacity: var(--route-vignette-peak); }
 }
 
-@keyframes oldSigilDissolve {
-  0% { opacity: 0.86; transform: scale(0.88) rotate(0); }
-  55% { opacity: 1; }
-  100% { opacity: 0; transform: scale(1.2) rotate(58deg); }
-}
-
-@keyframes newSigilForm {
-  0% { opacity: 0; transform: scale(0.34) rotate(-72deg); }
-  35% { opacity: 0.16; }
-  100% { opacity: 1; transform: scale(1) rotate(0); }
-}
-
-@keyframes drawSigil {
-  from { stroke-dashoffset: 280; }
-  to { stroke-dashoffset: 0; }
-}
-
-@keyframes sparkOrbit {
-  0% { opacity: 0; transform: translate(-50%, -50%) rotate(45deg) scale(0.4); }
-  45% { opacity: 0.9; }
-  100% { opacity: 0; transform: translate(var(--spark-x, 112px), var(--spark-y, -96px)) rotate(135deg) scale(1); }
+@keyframes vignetteOut {
+  0% { opacity: var(--route-vignette-peak); }
+  100% { opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -213,9 +135,4 @@
     animation-duration: 1ms !important;
     animation-delay: 0ms !important;
   }
-}
-
-@media (max-width: 760px) {
-  .sigilWrap { width: min(78vw, 360px); }
-  .grid { background-size: 48px 48px; }
 }

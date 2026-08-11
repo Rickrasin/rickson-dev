@@ -147,6 +147,10 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   coreWire.scale.y = 1.35;
   runePivot.add(core, coreWire);
 
+  const networkGroup = new THREE.Group();
+  runePivot.add(networkGroup);
+  networkGroup.add(ticks, axes);
+
   const nodeColors = [cyan, gold, green, cyan, green, gold];
   const nodes = [];
   const nodeShells = [];
@@ -157,10 +161,12 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
       : new THREE.TetrahedronGeometry(0.13, 0);
     const fill = new THREE.Mesh(geometry, meshMaterial(nodeColors[index], large ? 0.12 : 0.08));
     const shell = new THREE.Mesh(geometry, meshMaterial(nodeColors[index], large ? 0.9 : 0.62, true));
-    shell.scale.setScalar(large ? 1.27 : 1.18);
+    fill.userData.baseScale = 1;
+    shell.userData.baseScale = large ? 1.27 : 1.18;
+    shell.scale.setScalar(shell.userData.baseScale);
     nodes.push(fill);
     nodeShells.push(shell);
-    runePivot.add(fill, shell);
+    networkGroup.add(fill, shell);
   }
 
   const edgePairs = [[0, 1], [0, 2], [0, 3], [1, 4], [2, 5], [3, 6], [1, 2], [2, 3], [3, 1]];
@@ -168,7 +174,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   const connectionGeometry = new THREE.BufferGeometry();
   connectionGeometry.setAttribute("position", new THREE.BufferAttribute(linePositions, 3));
   const connections = new THREE.LineSegments(connectionGeometry, cyanLine);
-  runePivot.add(connections);
+  networkGroup.add(connections);
 
   const pulseGeometry = new THREE.SphereGeometry(0.032, 8, 8);
   const pulses = Array.from({ length: 18 }, (_, index) => {
@@ -176,7 +182,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     pulse.userData.edge = index % edgePairs.length;
     pulse.userData.offset = index / 18;
     pulse.userData.speed = 0.075 + (index % 4) * 0.013;
-    runePivot.add(pulse);
+    networkGroup.add(pulse);
     return pulse;
   });
 
@@ -189,7 +195,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     orbiter.userData.radius = radius;
     orbiter.userData.speed = (index % 2 ? -1 : 1) * (0.16 + index * 0.045);
     orbiter.userData.phase = index * 2.1;
-    runePivot.add(orbiter);
+    networkGroup.add(orbiter);
     orbiters.push(orbiter);
   });
 
@@ -254,10 +260,18 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   let scrollFrame = 0;
   let resizeFrame = 0;
   let disposed = false;
-  let visualsPaused = document.hidden || root.classList.contains("is-route-transitioning");
+  let visualsPaused = document.hidden;
   let averageFrameCost = 0;
   let slowFrameStreak = 0;
+  let triangleBaseRotation = 0;
   let qualityAssessmentStartedAt = performance.now() + 3000;
+  const routeMotion = {
+    phase: root.dataset.routeTransitionPhase || "idle",
+    direction: root.dataset.routeTransitionDirection || "forward",
+    startedAt: Number(root.dataset.routeTransitionStartedAt) || performance.now(),
+    energy: 0
+  };
+  const routeDurations = { leaving: 1550, arriving: 1250, settling: 1180 };
 
   const sectionPalette = {
     "case-intro": ["238 187 70", "95 143 160", "79 140 121"],
@@ -335,9 +349,23 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     return { x, y: 0.05, scale: targetSection === "case-workflow" ? 0.7 : 0.73 };
   }
 
+  function smootherstep01(value) {
+    const t = THREE.MathUtils.clamp(value, 0, 1);
+    return t * t * t * (t * (t * 6 - 15) + 10);
+  }
+
   function updateThemeColors(delta) {
     const light = root.dataset.theme === "light";
-    const emphasis = targetSection === "case-intro" ? 0.24 : 0.18;
+    const routeActive = routeMotion.phase === "leaving" || routeMotion.phase === "arriving";
+    const settling = routeMotion.phase === "settling";
+    const settleRaw = settling
+      ? THREE.MathUtils.clamp((performance.now() - routeMotion.startedAt) / routeDurations.settling, 0, 1)
+      : 1;
+    const glowSettle = smootherstep01(settleRaw / 0.72);
+    const structureSettle = smootherstep01((settleRaw - 0.08) / 0.92);
+    const dustReveal = settling ? smootherstep01((settleRaw - 0.18) / 0.82) : 1;
+    const routeEmphasis = 3.25 + routeMotion.energy * 1.35;
+    const baseEmphasis = targetSection === "case-intro" ? 0.24 : 0.18;
     const accent = targetSection === "case-problem" || targetSection === "case-engineering"
       ? green
       : targetSection === "case-delivery"
@@ -353,13 +381,22 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
 
     materials.forEach((material) => {
       const lightFactor = light ? 0.68 : 1;
-      material.opacity = material.userData.baseOpacity * emphasis * lightFactor;
+      const isGlowLayer = material === coreFillMaterial || material === pulseMaterial;
+      const settleMix = isGlowLayer ? glowSettle : structureSettle;
+      const emphasisMultiplier = routeActive
+        ? routeEmphasis
+        : settling
+          ? THREE.MathUtils.lerp(3.25, 1, settleMix)
+          : 1;
+      material.opacity = material.userData.baseOpacity * baseEmphasis * emphasisMultiplier * lightFactor;
     });
     dustMaterial.color.copy(light ? ink : cyan);
-    dustMaterial.opacity = dustMaterial.userData.baseOpacity * emphasis * (light ? 0.45 : 1);
+    dustMaterial.opacity = routeActive
+      ? 0
+      : dustMaterial.userData.baseOpacity * baseEmphasis * (light ? 0.45 : 1) * dustReveal;
   }
 
-  function updateRune(time, delta) {
+  function updateRune(time, delta, now) {
     const targetMode = modes[targetSection];
     positions.forEach((position, index) => {
       const target = targetMode[index];
@@ -411,9 +448,11 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     rune.scale.setScalar(THREE.MathUtils.damp(rune.scale.x, placement.scale, 3, delta));
     rune.rotation.x = THREE.MathUtils.damp(rune.rotation.x, pointerY * 0.07, 2.2, delta);
     rune.rotation.y = THREE.MathUtils.damp(rune.rotation.y, pointerX * 0.1, 2.2, delta);
+    rune.rotation.z = THREE.MathUtils.damp(rune.rotation.z, 0, 3.2, delta);
 
     const fractured = targetSection === "case-problem" ? 0.3 : 0;
-    triangleGroup.rotation.z = THREE.MathUtils.damp(triangleGroup.rotation.z, fractured, 2.7, delta);
+    triangleBaseRotation = THREE.MathUtils.damp(triangleBaseRotation, fractured, 2.7, delta);
+    triangleGroup.rotation.z = triangleBaseRotation;
     rings.rotation.z += delta * (targetSection === "case-problem" ? -0.075 : 0.035);
     ticks.rotation.z -= delta * 0.025;
     innerRing.rotation.z += delta * 0.08;
@@ -422,6 +461,84 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     coreWire.rotation.x -= delta * 0.12;
     coreWire.rotation.y += delta * 0.21;
     dust.rotation.z += delta * 0.006;
+
+    if (
+      routeMotion.phase === "settling"
+      && now - routeMotion.startedAt >= routeDurations.settling
+    ) {
+      routeMotion.phase = "idle";
+      routeMotion.energy = 0;
+      root.classList.remove("is-route-transition-settling");
+    }
+    const routeActive = routeMotion.phase === "leaving" || routeMotion.phase === "arriving";
+    dust.visible = !routeActive;
+    if (!routeActive) {
+      routeMotion.energy = 0;
+      rings.scale.setScalar(1);
+      triangleGroup.scale.setScalar(1);
+      triangleGroup.children.forEach((triangle) => {
+        triangle.rotation.z = 0;
+        triangle.position.z = 0;
+        triangle.scale.setScalar(1);
+      });
+      brokenRingA.rotation.z = 0;
+      brokenRingB.rotation.z = 0;
+      networkGroup.scale.setScalar(1);
+      networkGroup.rotation.set(0, 0, 0);
+      core.scale.set(1, 1.35, 1);
+      coreWire.scale.set(1, 1.35, 1);
+      nodes.forEach((node) => node.scale.setScalar(node.userData.baseScale));
+      nodeShells.forEach((shell) => shell.scale.setScalar(shell.userData.baseScale));
+      orbiters.forEach((orbiter) => orbiter.scale.setScalar(1));
+      return;
+    }
+
+    const duration = routeDurations[routeMotion.phase];
+    const rawProgress = THREE.MathUtils.clamp((now - routeMotion.startedAt) / duration, 0, 1);
+    const focus = routeMotion.phase === "leaving"
+      ? THREE.MathUtils.smoothstep(rawProgress, 0.14, 0.76)
+      : 1 - THREE.MathUtils.smoothstep(rawProgress, 0.18, 0.9);
+    const technicalReveal = routeMotion.phase === "leaving"
+      ? 1 - THREE.MathUtils.smoothstep(rawProgress, 0.2, 0.84)
+      : THREE.MathUtils.smoothstep(rawProgress, 0.1, 0.78);
+    const flourishProgress = THREE.MathUtils.smoothstep(rawProgress, 0.08, 0.92);
+    const flourish = Math.sin(flourishProgress * Math.PI);
+    routeMotion.energy = flourish;
+
+    rune.position.x = THREE.MathUtils.lerp(placement.x, 0, focus);
+    rune.position.y = THREE.MathUtils.lerp(placement.y, 0, focus);
+    rune.position.z = THREE.MathUtils.lerp(0, 0.95, focus);
+    rune.scale.setScalar(THREE.MathUtils.lerp(placement.scale, 1.02, focus));
+    rune.rotation.x = THREE.MathUtils.lerp(pointerY * 0.07, 0, focus);
+    rune.rotation.y = THREE.MathUtils.lerp(pointerX * 0.1, 0, focus);
+    rune.rotation.z = 0;
+
+    rings.scale.setScalar(THREE.MathUtils.lerp(0.34, 1, technicalReveal) + flourish * 0.045);
+    brokenRingA.rotation.z = 0;
+    brokenRingB.rotation.z = 0;
+
+    triangleGroup.scale.setScalar(1 + focus * 0.08 + flourish * 0.06);
+    triangleGroup.rotation.z = triangleBaseRotation;
+    const convergenceScales = [0.752, 1, 1.517];
+    triangleGroup.children.forEach((triangle, index) => {
+      triangle.rotation.z = 0;
+      triangle.position.z = flourish * (1 - index) * 0.16;
+      const convergedScale = convergenceScales[index] || 1;
+      triangle.scale.setScalar(
+        THREE.MathUtils.lerp(convergedScale, 1, technicalReveal) * (1 + flourish * 0.045)
+      );
+    });
+
+    networkGroup.scale.setScalar(THREE.MathUtils.lerp(0.04, 1, technicalReveal));
+    networkGroup.rotation.z = 0;
+    const corePulse = 1 + flourish * 0.28 + (1 - technicalReveal) * 0.14;
+    const wireBoost = 1 + flourish * 0.08 + (1 - technicalReveal) * 0.08;
+    core.scale.set(corePulse, corePulse * 1.35, corePulse);
+    coreWire.scale.set(
+      corePulse * wireBoost,
+      corePulse * wireBoost * 1.35,
+      corePulse * wireBoost
+    );
   }
 
   function animate(now) {
@@ -444,7 +561,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     lastRenderedAt = now - (frameGap % (1000 / targetFps));
     const motionDelta = reducedMotion ? Math.min(delta, 0.008) : delta;
     updateThemeColors(delta);
-    updateRune(now / 1000, motionDelta);
+    updateRune(now / 1000, motionDelta, now);
     renderer.render(scene, camera);
     if (visualQuality !== "software" && !reducedMotion && now >= qualityAssessmentStartedAt) {
       const frameCost = performance.now() - frameStartedAt;
@@ -487,6 +604,23 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
       resizeFrame = 0;
       resize();
     });
+  }
+
+  function handleRouteTransition(event) {
+    const detail = event.detail || {};
+    root.classList.remove("is-route-transition-settling");
+    routeMotion.phase = detail.phase || root.dataset.routeTransitionPhase || "idle";
+    routeMotion.direction = detail.direction || root.dataset.routeTransitionDirection || "forward";
+    routeMotion.startedAt = Number(detail.startedAt || root.dataset.routeTransitionStartedAt) || performance.now();
+    if (visualsPaused && !document.hidden) resumeVisuals();
+  }
+
+  function finishRouteTransition() {
+    const shouldSettle = routeMotion.phase === "arriving";
+    routeMotion.phase = shouldSettle ? "settling" : "idle";
+    routeMotion.startedAt = performance.now();
+    routeMotion.energy = 0;
+    root.classList.toggle("is-route-transition-settling", shouldSettle);
   }
 
   function pauseVisuals() {
@@ -550,6 +684,8 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     window.removeEventListener("pointermove", onPointerMove);
     window.removeEventListener("portfolio-visuals-pause", pauseVisuals);
     window.removeEventListener("portfolio-visuals-resume", resumeVisuals);
+    window.removeEventListener("portfolio-route-transition", handleRouteTransition);
+    window.removeEventListener("portfolio-route-transition-end", finishRouteTransition);
     document.removeEventListener("visibilitychange", handleVisibilityChange);
     revealObserver.disconnect();
     magneticCleanups.forEach((cleanup) => cleanup());
@@ -560,6 +696,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     });
     renderer.dispose();
     root.classList.remove("is-case-runtime-ready");
+    root.classList.remove("is-route-transition-settling");
   }
 
   root.classList.add("is-case-runtime-ready");
@@ -572,6 +709,8 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   window.addEventListener("pointermove", onPointerMove, { passive: true });
   window.addEventListener("portfolio-visuals-pause", pauseVisuals);
   window.addEventListener("portfolio-visuals-resume", resumeVisuals);
+  window.addEventListener("portfolio-route-transition", handleRouteTransition);
+  window.addEventListener("portfolio-route-transition-end", finishRouteTransition);
   document.addEventListener("visibilitychange", handleVisibilityChange);
   if (!visualsPaused) frameId = requestAnimationFrame(animate);
 }

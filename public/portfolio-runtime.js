@@ -25,8 +25,14 @@ let scrollUpdateFrame = 0;
 let resizeFrame = 0;
 let themeTransitionTimer = 0;
 let disposed = false;
-let visualsPaused = document.hidden || root.classList.contains("is-route-transitioning");
+let visualsPaused = document.hidden;
 const reducedMotionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+const routeMotion = {
+  phase: root.dataset.routeTransitionPhase || "idle",
+  direction: root.dataset.routeTransitionDirection || "forward",
+  startedAt: Number(root.dataset.routeTransitionStartedAt) || performance.now(),
+};
+const routeDurations = { leaving: 1550, arriving: 1250 };
 
 function hasMajorGraphicsCaveat() {
   const probe = document.createElement("canvas");
@@ -225,6 +231,7 @@ const viewport = { width: 1, height: 1 };
 const dummy = new THREE.Object3D();
 const vector = new THREE.Vector3();
 const stageTarget = new THREE.Vector3();
+const routeCenter = new THREE.Vector3();
 const colorA = new THREE.Color();
 const colorB = new THREE.Color();
 const currentMoodCache = {
@@ -355,12 +362,16 @@ const portalGroup = new THREE.Group();
 const sigilGroup = new THREE.Group();
 const ringGroup = new THREE.Group();
 const trailGroup = new THREE.Group();
-scene.add(ringGroup, portalGroup, trailGroup, sigilGroup);
+const routeMagicGroup = new THREE.Group();
+routeMagicGroup.visible = false;
+scene.add(ringGroup, portalGroup, trailGroup, sigilGroup, routeMagicGroup);
 
 let particleMesh;
 let emberMesh;
 let shardMesh;
 let sigilMaterials = [];
+let routeSigilMaterials = [];
+let routeSigilEchoes = [];
 let trails = [];
 let rings = [];
 
@@ -472,14 +483,41 @@ function buildSigil() {
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   });
+  const innerEchoMaterial = new THREE.LineBasicMaterial({
+    color: "#6EA6B8",
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const outerEchoMaterial = new THREE.LineBasicMaterial({
+    color: "#EEBB46",
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const transmutationMaterial = new THREE.LineBasicMaterial({
+    color: "#F7F7F1",
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
 
   const fill = new THREE.Mesh(createTriangleFillGeometry(), fillMaterial);
   const outer = new THREE.Line(createTriangleLineGeometry(), outerMaterial);
+  const innerEcho = new THREE.Line(createTriangleLineGeometry(1.38, 1.22, 0.1), innerEchoMaterial);
+  const outerEcho = new THREE.Line(createTriangleLineGeometry(2.62, 2.34, -0.04), outerEchoMaterial);
+  const transmutationEcho = new THREE.Line(createTriangleLineGeometry(2.04, 1.82, 0.18), transmutationMaterial);
   const aura = new THREE.Mesh(new THREE.PlaneGeometry(3.55, 3.55), auraMaterial);
   aura.position.z = -0.32;
 
   sigilGroup.add(aura, fill, outer);
+  routeMagicGroup.add(outerEcho, innerEcho, transmutationEcho);
   sigilMaterials = [fillMaterial, outerMaterial, auraMaterial];
+  routeSigilMaterials = [innerEchoMaterial, outerEchoMaterial, transmutationMaterial];
+  routeSigilEchoes = [innerEcho, outerEcho, transmutationEcho];
 }
 
 function createCircleLine(radius, segments = 150) {
@@ -817,17 +855,23 @@ function updateRings(time) {
   });
 }
 
-function updateSigil(time) {
+function updateSigil(time, now) {
   const exit = smoothstep(0.08, 0.78, scrollState.heroExit);
   const mood = getMood();
+  const baseSigilScale = lerp(0.88, 0.42, exit);
+  const baseRingScale = lerp(0.92, 1.18, smoothstep(0.02, 0.88, scrollState.heroExit));
+  const baseTrailScale = lerp(0.82, 1.08, smoothstep(0.02, 0.9, scrollState.heroExit));
 
   sigilGroup.position.lerp(stageTarget, 0.1);
   ringGroup.position.lerp(stageTarget, 0.08);
   trailGroup.position.lerp(stageTarget, 0.06);
-  sigilGroup.rotation.x = pointer.y * 0.1 * motionProfile.pointer + Math.sin(time * 0.32 * motionProfile.speed) * 0.032 * motionProfile.wobble;
-  sigilGroup.rotation.y = pointer.x * 0.12 * motionProfile.pointer + Math.sin(time * 0.19 * motionProfile.speed) * 0.08 * motionProfile.wobble;
-  sigilGroup.rotation.z = Math.sin(time * 0.22 * motionProfile.speed) * 0.04 * motionProfile.wobble + exit * 0.36;
-  sigilGroup.scale.setScalar(lerp(0.88, 0.42, exit));
+  const baseSigilRotationX = pointer.y * 0.1 * motionProfile.pointer + Math.sin(time * 0.32 * motionProfile.speed) * 0.032 * motionProfile.wobble;
+  const baseSigilRotationY = pointer.x * 0.12 * motionProfile.pointer + Math.sin(time * 0.19 * motionProfile.speed) * 0.08 * motionProfile.wobble;
+  const baseSigilRotationZ = Math.sin(time * 0.22 * motionProfile.speed) * 0.04 * motionProfile.wobble + exit * 0.36;
+  sigilGroup.rotation.x = baseSigilRotationX;
+  sigilGroup.rotation.y = baseSigilRotationY;
+  sigilGroup.rotation.z = baseSigilRotationZ;
+  sigilGroup.scale.setScalar(baseSigilScale);
 
   sigilMaterials.forEach((material) => applyThemeBlending(material, mood.theme));
   sigilMaterials[0].color.set(mood.theme === "light" ? "#ffffff" : "#070707");
@@ -836,6 +880,87 @@ function updateSigil(time) {
   sigilMaterials[1].opacity = (mood.theme === "light" ? 0.95 : 0.88) * lerp(1, 0.08, exit) * motionProfile.sigilOpacity;
   sigilMaterials[2].color.copy(mood.tertiary);
   sigilMaterials[2].opacity = (mood.theme === "light" ? 0.1 : 0.14) * lerp(1, 0.1, exit) * motionProfile.sigilOpacity;
+  routeSigilMaterials.forEach((material) => {
+    applyThemeBlending(material, mood.theme);
+    material.opacity = 0;
+  });
+  routeSigilEchoes.forEach((echo) => {
+    echo.position.z = 0;
+    echo.rotation.set(0, 0, 0);
+    echo.scale.setScalar(1);
+  });
+
+  const routeActive = routeMotion.phase === "leaving" || routeMotion.phase === "arriving";
+  portalGroup.visible = !routeActive;
+  routeMagicGroup.visible = routeActive;
+  if (!routeActive) return;
+
+  const duration = routeDurations[routeMotion.phase];
+  const rawProgress = clamp((now - routeMotion.startedAt) / duration);
+  const focus = routeMotion.phase === "leaving"
+    ? smoothstep(0.14, 0.76, rawProgress)
+    : 1 - smoothstep(0.18, 0.9, rawProgress);
+  const wake = routeMotion.phase === "leaving"
+    ? smoothstep(0.015, 0.24, rawProgress)
+    : 1 - smoothstep(0.72, 0.98, rawProgress);
+  const evolution = routeMotion.phase === "leaving"
+    ? smoothstep(0.2, 0.84, rawProgress)
+    : 1 - smoothstep(0.1, 0.78, rawProgress);
+  const flourishProgress = smoothstep(0.08, 0.92, rawProgress);
+  const flourish = Math.sin(flourishProgress * Math.PI);
+  const waveProgress = smoothstep(0.06, 0.86, rawProgress);
+  const transmutationPulse = Math.sin(waveProgress * Math.PI);
+  screenToWorld(window.innerWidth * 0.5, window.innerHeight * 0.5, 0.18, routeCenter);
+
+  [sigilGroup, ringGroup, trailGroup, routeMagicGroup].forEach((group) => {
+    group.position.x = lerp(stageTarget.x, routeCenter.x, focus);
+    group.position.y = lerp(stageTarget.y, routeCenter.y, focus);
+    group.position.z = lerp(stageTarget.z, routeCenter.z + 1.45, focus);
+  });
+
+  const sigilBoost = lerp(1, 2.42, focus);
+  const ringBoost = lerp(1, 0.38, evolution);
+  const trailBoost = lerp(1, 0.18, evolution);
+  sigilGroup.scale.setScalar(baseSigilScale * sigilBoost);
+  routeMagicGroup.scale.setScalar(baseSigilScale * sigilBoost);
+  ringGroup.scale.setScalar(baseRingScale * ringBoost);
+  trailGroup.scale.setScalar(baseTrailScale * trailBoost);
+  sigilGroup.rotation.set(baseSigilRotationX, baseSigilRotationY, baseSigilRotationZ);
+  routeMagicGroup.rotation.set(0, 0, 0);
+
+  routeSigilMaterials[0].color.copy(mood.secondary);
+  routeSigilMaterials[1].color.copy(mood.primary);
+  routeSigilMaterials[2].color.copy(mood.tertiary);
+  routeSigilMaterials[0].opacity = 0.78 * evolution * motionProfile.sigilOpacity;
+  routeSigilMaterials[1].opacity = 0.5 * evolution * motionProfile.sigilOpacity;
+  routeSigilMaterials[2].opacity = 0.7 * transmutationPulse * motionProfile.sigilOpacity;
+  routeSigilEchoes[0].position.z = evolution * 0.18 + flourish * 0.12;
+  routeSigilEchoes[0].scale.setScalar(lerp(0.58, 1, evolution) + flourish * 0.055);
+  routeSigilEchoes[1].position.z = -evolution * 0.16 - flourish * 0.08;
+  routeSigilEchoes[1].scale.setScalar(lerp(1.28, 1, evolution));
+  routeSigilEchoes[2].position.z = transmutationPulse * 0.28;
+  routeSigilEchoes[2].scale.setScalar(lerp(0.68, 1.52, waveProgress));
+  const ringFragment = smoothstep(0.02, 0.88, scrollState.heroExit);
+  const trailFragment = smoothstep(0.02, 0.9, scrollState.heroExit);
+  const orbitalDissolve = smoothstep(0.08, 0.72, evolution);
+  const sourceDissolve = 1 - smoothstep(0.06, 0.58, evolution);
+  rings.forEach((ring) => {
+    const baseOpacity = ring.userData.baseOpacity
+      * (mood.theme === "light" ? 1.62 : 1.12)
+      * (0.7 + ringFragment * 0.98)
+      * motionProfile.ringOpacity;
+    ring.material.opacity = baseOpacity * lerp(1, 2.35, wake) * lerp(1, 0.08, orbitalDissolve);
+  });
+  trails.forEach((trail) => {
+    const baseOpacity = trail.userData.baseOpacity
+      * (0.84 + trailFragment * 1.02)
+      * (mood.theme === "light" ? 1.12 : 1.04)
+      * motionProfile.trailOpacity;
+    trail.material.opacity = baseOpacity * lerp(1, 1.75, wake) * lerp(1, 0, smoothstep(0.05, 0.58, evolution));
+  });
+  sigilMaterials[0].opacity = lerp(sigilMaterials[0].opacity, mood.theme === "light" ? 0.06 : 0.13, wake) * sourceDissolve;
+  sigilMaterials[1].opacity = lerp(sigilMaterials[1].opacity, 0.96, wake) * sourceDissolve;
+  sigilMaterials[2].opacity = lerp(sigilMaterials[2].opacity, 0.08 + transmutationPulse * 0.13, wake);
 }
 
 function updateActiveSection() {
@@ -1349,6 +1474,19 @@ function scheduleResize() {
   });
 }
 
+function handleRouteTransition(event) {
+  const detail = event.detail || {};
+  routeMotion.phase = detail.phase || root.dataset.routeTransitionPhase || "idle";
+  routeMotion.direction = detail.direction || root.dataset.routeTransitionDirection || "forward";
+  routeMotion.startedAt = Number(detail.startedAt || root.dataset.routeTransitionStartedAt) || performance.now();
+  if (visualsPaused && !document.hidden) resumeVisuals();
+}
+
+function finishRouteTransition() {
+  routeMotion.phase = "idle";
+  routeMotion.startedAt = performance.now();
+}
+
 function pauseVisuals() {
   visualsPaused = true;
   cancelAnimationFrame(animationFrame);
@@ -1393,6 +1531,8 @@ function setupEvents() {
   document.addEventListener("visibilitychange", handleVisibilityChange, { signal: runtimeSignal });
   window.addEventListener("portfolio-visuals-pause", pauseVisuals, { signal: runtimeSignal });
   window.addEventListener("portfolio-visuals-resume", resumeVisuals, { signal: runtimeSignal });
+  window.addEventListener("portfolio-route-transition", handleRouteTransition, { signal: runtimeSignal });
+  window.addEventListener("portfolio-route-transition-end", finishRouteTransition, { signal: runtimeSignal });
 
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
     link.addEventListener("click", (event) => {
@@ -1489,7 +1629,7 @@ function animate(now = 0) {
     updateTrails(time);
     updateRings(time);
   }
-  updateSigil(time);
+  updateSigil(time, now);
   renderer.render(scene, camera);
   if (visualQuality !== "software" && !reducedMotion && now >= qualityAssessmentStartedAt) {
     const frameCost = performance.now() - frameStartedAt;

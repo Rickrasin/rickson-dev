@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 
-const runtimeSrc = "/portfolio-runtime.js?v=20260810-mobile-controls-1";
+const runtimeSrc = "/portfolio-runtime.js?v=20260810-unified-1";
 const runtimeMountEvent = "portfolio-runtime-mount";
 
 export function PortfolioRuntime() {
