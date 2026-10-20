@@ -353,19 +353,19 @@ function ProjectsSection() {
           >
             <Image
               className="project-primary__web"
-              alt="Tela de detalhes de um chamado no sistema web Silver3"
+              alt="Fila atual de chamados do portal desenvolvido para a Silver3 com dados fictícios"
               height={1080}
               sizes="(max-width: 760px) 82vw, (max-width: 1120px) 70vw, 44vw"
-              src="/assets/cases/silver3/silver3-web-ticket-detail-clean-1920x1080.png"
+              src="/assets/cases/silver3/silver3-web-queue-light-demo-20261020.png"
               width={1920}
             />
             <Image
               className="project-primary__phone"
               alt="Painel do aplicativo desenvolvido para a Silver3 com dados fictícios"
-              height={2856}
+              height={2400}
               sizes="(max-width: 760px) 24vw, (max-width: 1120px) 20vw, 11vw"
-              src="/assets/cases/silver3/silver3-app-1280x2856.png"
-              width={1280}
+              src="/assets/cases/silver3/silver3-mobile-dashboard-20261020.png"
+              width={1080}
             />
           </div>
         </a>
