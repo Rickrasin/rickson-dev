@@ -348,6 +348,14 @@
   border: 1px solid var(--line);
 }
 
+.captureCaption {
+  padding: 14px 2px 2px;
+  color: var(--muted-strong);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
 .previewChrome {
   position: absolute;
   top: 0;
@@ -442,7 +450,7 @@
   place-items: center;
   min-width: 0;
   margin: 0;
-  padding: 12px;
+  padding: 12px 12px 48px;
   overflow: hidden;
   border: 1px solid var(--line);
   background: color-mix(in srgb, var(--surface-strong) 80%, transparent);
@@ -708,7 +716,7 @@
   .gallery { grid-template-columns: 1fr 1fr; }
   .webPreview { grid-column: 1 / -1; min-height: 230px; }
   .mobilePreview { min-height: 330px; }
-  .gallery figure { padding: 8px; }
+  .gallery figure { padding: 8px 8px 48px; }
 
   .engineeringList article { grid-template-columns: 38px 1fr; gap: 16px; }
   .engineeringList article p { grid-column: 2; }

@@ -57,9 +57,9 @@ const copy = {
     themeLabel: "Alternar tema",
     hero: {
       eyebrow: "Projeto para a Silver3",
-      title: "Suporte organizado, do primeiro contato ao fechamento.",
+      title: "Do chamado à solução, com todo o contexto à mão.",
       body:
-        "Projetei e desenvolvi para a Silver3 uma plataforma de gestão de chamados de TI com ambiente web e aplicativo móvel, criada para organizar todo o fluxo de suporte interno em um só lugar.",
+        "Projetei e desenvolvi para a Silver3 uma plataforma de suporte de TI que conecta fila de chamados, clientes, locais e responsáveis. Portal web, aplicativo móvel e API compartilham o contexto de cada atendimento.",
       primary: "Conhecer o projeto",
       secondary: "Falar sobre um sistema",
       scene: "Portal web e aplicativo móvel da solução desenvolvida para a Silver3"
@@ -68,11 +68,11 @@ const copy = {
       label: "// 01. O problema",
       title: "De solicitações dispersas a uma operação sob controle.",
       body:
-        "Com uma plataforma, a empresa deixa de depender de mensagens e planilhas soltas para organizar o suporte interno. Os chamados entram em uma fila única, cada etapa tem responsáveis e histórico, e solicitantes, técnicos e gestores acompanham o andamento sem depender de atualizações manuais.",
+        "Atender várias empresas exige saber a qual cliente e local cada solicitação pertence, quem responde por ela e qual é o próximo passo. A plataforma reúne essas informações na fila e no detalhe do chamado, junto da conversa e do histórico.",
       items: [
-        ["Uma fila para toda a operação", "Todos os chamados seguem o mesmo fluxo, organizados por prioridade, SLA, cliente e responsável."],
+        ["Uma fila para toda a operação", "Busca, filtros e ordenação ajudam a localizar chamados por status, tipo e prioridade, com cliente, solicitante, técnico e SLA na mesma listagem."],
         ["Responsabilidade com contexto", "Cada chamado mostra quem está atendendo, o que já foi feito e quando a responsabilidade mudou."],
-        ["Visibilidade para acompanhar e decidir", "Quem solicita acompanha o andamento do chamado, enquanto a gestão enxerga volume, prazos, SLAs e gargalos da operação."]
+        ["Visibilidade para acompanhar e decidir", "O painel destaca chamados ativos, solicitações sem técnico, espera por terceiros e a situação dos SLAs."]
       ]
     },
     delivery: {
@@ -84,12 +84,12 @@ const copy = {
         {
           code: "WEB",
           title: "Gestão simples no navegador",
-          body: "Telas claras e fáceis de usar para solicitantes, técnicos e gestores abrirem, acompanharem e administrarem chamados com eficiência, aproveitando o espaço e a praticidade do navegador."
+          body: "Fila com busca e filtros, painel da operação e detalhe com conversa, notas, anexos e histórico. Clientes, locais, ativos, base de conhecimento e relatórios complementam o atendimento."
         },
         {
           code: "MOBILE",
           title: "Chamados em qualquer lugar",
-          body: "A mesma operação em um aplicativo para Android e iOS, com abertura, acompanhamento e atendimento de chamados, anexos e notificações em uma experiência adaptada ao celular."
+          body: "Aplicativo Flutter para Android e iOS com painel, lista e detalhe de chamados, respostas, anexos e notificações. As capturas mostram o app Android executado localmente com os mesmos dados fictícios do portal."
         },
         {
           code: "API",
@@ -106,10 +106,10 @@ const copy = {
       steps: [
         ["01", "Registrar", "O chamado nasce ligado ao cliente, local e solicitantes corretos."],
         ["02", "Priorizar", "Tipo, categoria, prioridade e SLA orientam o próximo passo."],
-        ["03", "Atender", "Conversa, notas, anexos e timeline preservam o contexto."],
-        ["04", "Acompanhar", "Painéis, busca, alertas e relatórios mostram o estado da operação."]
+        ["03", "Atender", "Respostas, notas, anexos e histórico ficam junto dos dados do chamado."],
+        ["04", "Acompanhar", "O painel resume a fila e os SLAs; a lista permite buscar e filtrar os atendimentos."]
       ],
-      demo: "Capturas demonstrativas com dados exclusivamente fictícios."
+      demo: "Interface atual capturada em ambiente local. Clientes, pessoas, chamados e indicadores são fictícios; os números não representam resultados de produção."
     },
     engineering: {
       label: "// 04. Engenharia",
@@ -128,9 +128,9 @@ const copy = {
     },
     result: {
       label: "// 05. Resultado",
-      title: "Uma operação em uso, com evolução contínua.",
+      title: "Um fluxo conectado, do painel à conversa.",
       body:
-        "A superfície web já opera em produção e a API sustenta o fluxo real de chamados. O aplicativo cobre a operação móvel e segue como candidato a release para homologação e testes fechados, com pendências de distribuição e validação final.",
+        "A entrega reúne gestão no navegador e atendimento no aplicativo, com cliente, local, solicitante, técnico e histórico associados ao chamado. Da visão da fila à resposta ao solicitante, cada etapa mantém as informações necessárias para dar continuidade ao atendimento.",
       stats: [["WEB", "em produção"], ["API", "ativa"], ["APP", "em homologação"]],
       ctaEyebrow: "Tem uma operação que ainda depende de ferramentas espalhadas?",
       ctaTitle: "Posso transformar esse fluxo em um sistema sob medida.",
@@ -145,9 +145,9 @@ const copy = {
     themeLabel: "Toggle theme",
     hero: {
       eyebrow: "Project for Silver3",
-      title: "Organized support, from first contact to resolution.",
+      title: "From ticket to resolution, with all the context at hand.",
       body:
-        "I designed and developed an IT ticket management platform for Silver3 with a web environment and mobile app, created to organize the entire internal support workflow in one place.",
+        "I designed and developed an IT support platform for Silver3 connecting the ticket queue, clients, locations, and owners. The web portal, mobile app, and API share the context of each support request.",
       primary: "Explore the project",
       secondary: "Discuss a system",
       scene: "Web portal and mobile application developed for Silver3"
@@ -156,11 +156,11 @@ const copy = {
       label: "// 01. The problem",
       title: "From scattered requests to an operation under control.",
       body:
-        "With a platform, the company no longer depends on messages and scattered spreadsheets to organize internal support. Tickets enter a single queue, each stage has clear ownership and history, and requesters, technicians, and managers can follow progress without relying on manual updates.",
+        "Supporting several companies means knowing which client and location a request belongs to, who owns it, and what comes next. The platform brings this information into the queue and ticket detail alongside the conversation and history.",
       items: [
-        ["One queue for the entire operation", "Every ticket follows the same workflow, organized by priority, SLA, client, and owner."],
+        ["One queue for the entire operation", "Search, filters, and sorting help locate tickets by status, type, and priority, with client, requester, technician, and SLA in the same list."],
         ["Ownership with context", "Each ticket shows who is handling it, what has been done, and when ownership changed."],
-        ["Visibility to track and decide", "Requesters track ticket progress while management sees volume, deadlines, SLAs, and operational bottlenecks."]
+        ["Visibility to track and decide", "The dashboard highlights active tickets, unassigned requests, tickets waiting for vendors, and SLA status."]
       ]
     },
     delivery: {
@@ -169,8 +169,8 @@ const copy = {
       body:
         "The solution developed for Silver3 brings together a web environment and a mobile app in a single platform. Web and mobile provide access to the same ticket workflow while organizing navigation and information for each screen and context of use. The API connects both interfaces and unifies identities, permissions, rules, and data in one place.",
       platforms: [
-        { code: "WEB", title: "Simple browser management", body: "Clear, easy-to-use screens for requesters, technicians, and managers to open, track, and manage tickets efficiently while taking advantage of the space and convenience of the browser." },
-        { code: "MOBILE", title: "Tickets anywhere", body: "The same operation in an Android and iOS app, with ticket creation, tracking and service, attachments, and notifications in an experience adapted to mobile screens." },
+        { code: "WEB", title: "Simple browser management", body: "A searchable, filterable queue, an operational dashboard, and ticket detail with conversation, notes, attachments, and history. Clients, locations, assets, a knowledge base, and reports support the workflow." },
+        { code: "MOBILE", title: "Tickets anywhere", body: "A Flutter app for Android and iOS with a dashboard, ticket list and detail, replies, attachments, and notifications. The screenshots show the Android app running locally with the same fictional data as the portal." },
         { code: "API", title: "Platform core", body: "The central layer that connects web and mobile and unifies identities, permissions, rules, tickets, messages, attachments, SLAs, notifications, and history in one place." }
       ]
     },
@@ -182,10 +182,10 @@ const copy = {
       steps: [
         ["01", "Register", "The ticket starts connected to the correct client, location, and requesters."],
         ["02", "Prioritize", "Type, category, priority, and SLA guide the next step."],
-        ["03", "Work", "Conversation, notes, attachments, and timeline preserve context."],
-        ["04", "Track", "Dashboards, search, alerts, and reports expose the state of the operation."]
+        ["03", "Work", "Replies, notes, attachments, and history stay alongside ticket information."],
+        ["04", "Track", "The dashboard summarizes the queue and SLAs; the list supports search and filters."]
       ],
-      demo: "Demonstration screenshots produced exclusively with fictional data."
+      demo: "Current interface captured locally. Clients, people, tickets, and indicators are fictional; the figures do not represent production results."
     },
     engineering: {
       label: "// 04. Engineering",
@@ -204,9 +204,9 @@ const copy = {
     },
     result: {
       label: "// 05. Outcome",
-      title: "A live operation under continuous evolution.",
+      title: "A connected workflow, from dashboard to conversation.",
       body:
-        "The web surface is already in production and the API supports the real ticket workflow. The app covers mobile operations and remains a release candidate for validation and closed testing, with distribution and final validation work still pending.",
+        "The delivery combines browser management and mobile service, with the client, location, requester, technician, and history attached to each ticket. From reviewing the queue to replying to a requester, each step keeps the information needed to continue the support workflow.",
       stats: [["WEB", "in production"], ["API", "active"], ["APP", "in validation"]],
       ctaEyebrow: "Is your operation still spread across disconnected tools?",
       ctaTitle: "I can turn that workflow into a custom system.",
@@ -217,10 +217,11 @@ const copy = {
 } as const;
 
 const galleryImages = [
-  { src: "/assets/cases/silver3/silver3-web-ticket-detail-clean-1920x1080.png", width: 1920, height: 1080, kind: "web" },
-  { src: "/assets/cases/silver3/silver3-dashboard-safe.png", width: 1600, height: 900, kind: "web" },
-  { src: "/assets/cases/silver3/silver3-app-1280x2856.png", width: 1280, height: 2856, kind: "mobile" },
-  { src: "/assets/cases/silver3/silver3-mobile-ticket-local.png", width: 1280, height: 2856, kind: "mobile" }
+  { src: "/assets/cases/silver3/silver3-web-queue-light-demo-20261020.png", width: 1920, height: 1080, kind: "web", pt: "WEB / FILA DE CHAMADOS · CLARO", en: "WEB / TICKET QUEUE · LIGHT", altPt: "Fila de chamados em tema claro com busca, filtros, clientes, técnicos e SLA", altEn: "Light theme ticket queue with search, filters, clients, technicians, and SLA" },
+  { src: "/assets/cases/silver3/silver3-web-ticket-dark-demo-20261020.png", width: 1920, height: 1080, kind: "web", pt: "WEB / CONVERSA E CONTEXTO · ESCURO", en: "WEB / CONVERSATION AND CONTEXT · DARK", altPt: "Chamado fictício sobre Wi-Fi em tema escuro com conversa, classificação e responsável", altEn: "Dark theme fictional Wi-Fi ticket with conversation, classification, and owner" },
+  { src: "/assets/cases/silver3/silver3-web-dashboard-light-demo-20261020.png", width: 1920, height: 1080, kind: "web", pt: "WEB / PAINEL DA OPERAÇÃO · CLARO", en: "WEB / OPERATIONS DASHBOARD · LIGHT", altPt: "Painel web em tema claro com indicadores fictícios de fila, atribuição e SLA", altEn: "Light theme web dashboard with fictional queue, assignment, and SLA indicators" },
+  { src: "/assets/cases/silver3/silver3-mobile-dashboard-20261020.png", width: 1080, height: 2400, kind: "mobile", pt: "APP / PAINEL · ESCURO", en: "APP / DASHBOARD · DARK", altPt: "Painel do aplicativo Android em tema escuro com os chamados fictícios da demonstração", altEn: "Dark theme Android app dashboard with fictional demonstration tickets" },
+  { src: "/assets/cases/silver3/silver3-mobile-ticket-light-20261020.png", width: 1080, height: 2400, kind: "mobile", pt: "APP / CHAMADO · CLARO", en: "APP / TICKET · LIGHT", altPt: "Detalhe do chamado fictício de Wi-Fi em tema claro no aplicativo Android", altEn: "Light theme fictional Wi-Fi ticket detail in the Android app" }
 ] as const;
 
 function ArrowIcon() {
@@ -553,7 +554,7 @@ export function Silver3CasePage() {
                 <span /><span /><span /><small>SILVER3 / SUPPORT</small>
               </div>
               <Image
-                alt={language === "en" ? "Ticket management platform developed for Silver3 with fictional data" : "Plataforma de gestão de chamados desenvolvida para a Silver3 com dados fictícios"}
+                alt={language === "en" ? galleryImages[0].altEn : galleryImages[0].altPt}
                 height={galleryImages[0].height}
                 priority
                 sizes="(max-width: 760px) 88vw, (max-width: 1120px) 76vw, 38vw"
@@ -564,10 +565,10 @@ export function Silver3CasePage() {
             <figure className={styles.heroMobileFrame}>
               <Image
                 alt={language === "en" ? "Mobile ticket management app developed for Silver3 with fictional data" : "Aplicativo móvel de gestão de chamados desenvolvido para a Silver3 com dados fictícios"}
-                height={galleryImages[2].height}
+                height={galleryImages[3].height}
                 sizes="(max-width: 760px) 28vw, (max-width: 1120px) 20vw, 9vw"
-                src={galleryImages[2].src}
-                width={galleryImages[2].width}
+                src={galleryImages[3].src}
+                width={galleryImages[3].width}
               />
             </figure>
           </div>
@@ -601,7 +602,8 @@ export function Silver3CasePage() {
           </div>
           <figure className={styles.dashboardPreview} data-reveal>
             <div className={styles.previewChrome}><span /><span /><span /><small>silver3 / support</small></div>
-            <Image alt={language === "en" ? "Ticket detail in the platform developed for Silver3 with fictional data" : "Detalhe de chamado na plataforma desenvolvida para a Silver3 com dados fictícios"} height={galleryImages[0].height} sizes="(max-width: 760px) 92vw, 78vw" src={galleryImages[0].src} width={galleryImages[0].width} />
+            <Image alt={language === "en" ? galleryImages[1].altEn : galleryImages[1].altPt} height={galleryImages[1].height} sizes="(max-width: 760px) 92vw, 78vw" src={galleryImages[1].src} width={galleryImages[1].width} />
+            <figcaption className={styles.captureCaption} data-s3-i18n>{language === "en" ? galleryImages[1].en : galleryImages[1].pt}</figcaption>
           </figure>
         </section>
 
@@ -617,10 +619,10 @@ export function Silver3CasePage() {
           </ol>
           <p className={styles.demoNote} data-s3-i18n>{content.workflow.demo}</p>
           <div className={styles.gallery}>
-            {galleryImages.slice(1).map((image, index) => (
+            {galleryImages.slice(2).map((image) => (
               <figure className={image.kind === "mobile" ? styles.mobilePreview : styles.webPreview} data-reveal key={image.src}>
-                <Image alt="" height={image.height} sizes={image.kind === "mobile" ? "(max-width: 760px) 68vw, 24vw" : "(max-width: 760px) 92vw, 54vw"} src={image.src} width={image.width} />
-                <figcaption>{index === 0 ? "WEB / DASHBOARD" : `APP / 0${index}`}</figcaption>
+                <Image alt={language === "en" ? image.altEn : image.altPt} height={image.height} sizes={image.kind === "mobile" ? "(max-width: 760px) 68vw, 24vw" : "(max-width: 760px) 92vw, 54vw"} src={image.src} width={image.width} />
+                <figcaption data-s3-i18n>{language === "en" ? image.en : image.pt}</figcaption>
               </figure>
             ))}
           </div>
