@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { BrandLogo } from "@/shared/ui/BrandLogo";
 import { PortfolioRuntime } from "./PortfolioRuntime";
 
 function SpriteIcon({ id }: { id: string }) {
@@ -165,10 +166,8 @@ function SideRail() {
 function Topbar() {
   return (
     <header className="topbar">
-      <a className="wordmark" href="#hero">
-        Rickson
-        <br />
-        Dev
+      <a aria-label="Rickson.dev" className="brand-link" href="#hero">
+        <BrandLogo priority />
       </a>
       <a className="button secondary header-cta magnetic" href="#contact">
         <span data-i18n="header.cta">Falar sobre projeto</span>

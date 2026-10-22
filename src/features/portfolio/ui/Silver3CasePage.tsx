@@ -5,6 +5,7 @@ import Link from "next/link";
 import Script from "next/script";
 import type { MouseEvent } from "react";
 import { useEffect, useLayoutEffect, useRef, useSyncExternalStore } from "react";
+import { BrandLogo } from "@/shared/ui/BrandLogo";
 import styles from "./Silver3CasePage.module.css";
 
 type Language = "pt" | "en";
@@ -529,7 +530,7 @@ export function Silver3CasePage() {
       </aside>
 
       <header className={`topbar ${styles.topbar}`}>
-        <Link className="wordmark" href="/">Rickson<br />Dev</Link>
+        <Link aria-label="Rickson.dev" className="brand-link" href="/"><BrandLogo priority /></Link>
         <Link className={`button secondary header-cta magnetic ${styles.backButton}`} data-route-transition href="/#projects">
           <span data-s3-i18n>← {content.back}</span>
         </Link>
@@ -661,7 +662,7 @@ export function Silver3CasePage() {
         </section>
       </main>
 
-      <footer className={styles.footer}><span data-s3-i18n>{content.footer}</span><Link href="/">rickson.dev</Link></footer>
+      <footer className={styles.footer}><span data-s3-i18n>{content.footer}</span><Link aria-label="Rickson.dev" className="brand-link" href="/"><BrandLogo /></Link></footer>
       <Script
         onReady={() => {
           window.dispatchEvent(new Event("silver3-runtime-mount"));

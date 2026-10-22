@@ -27,7 +27,7 @@ export function SocialPreview({ logoSrc }: SocialPreviewProps) {
           display: "flex",
           flex: 1,
           flexDirection: "column",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           overflow: "hidden",
           padding: "46px 58px 42px",
           position: "relative"
@@ -84,25 +84,6 @@ export function SocialPreview({ logoSrc }: SocialPreviewProps) {
             width: 1
           }}
         />
-
-        <div
-          style={{
-            alignItems: "center",
-            display: "flex",
-            width: "100%"
-          }}
-        >
-          <div
-            style={{
-              color: "#EEBB46",
-              display: "flex",
-              fontSize: 22,
-              letterSpacing: 2
-            }}
-          >
-            RICKSON.DEV
-          </div>
-        </div>
 
         <div
           style={{
@@ -215,15 +196,15 @@ export function SocialPreview({ logoSrc }: SocialPreviewProps) {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           alt=""
-          height={254}
+          height={244}
           src={logoSrc}
           style={{
-            left: 363,
+            left: 323,
             objectFit: "contain",
             position: "absolute",
-            top: 131
+            top: 136
           }}
-          width={360}
+          width={440}
         />
 
         <div
