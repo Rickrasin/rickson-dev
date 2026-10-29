@@ -27,6 +27,8 @@ let themeTransitionTimer = 0;
 let disposed = false;
 let visualsPaused = document.hidden;
 const reducedMotionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+const introStartedAt = Number(root.dataset.homeIntroStartedAt);
+let introProgress = root.dataset.homeIntro === "true" ? 0 : 1;
 const routeMotion = {
   phase: root.dataset.routeTransitionPhase || "idle",
   direction: root.dataset.routeTransitionDirection || "forward",
@@ -370,6 +372,7 @@ let particleMesh;
 let emberMesh;
 let shardMesh;
 let sigilMaterials = [];
+let sigilOutline;
 let routeSigilMaterials = [];
 let routeSigilEchoes = [];
 let trails = [];
@@ -449,16 +452,27 @@ function createTriangleFillGeometry(width = 2.04, height = 1.82) {
   return geometry;
 }
 
-function createTriangleLineGeometry(width = 2.04, height = 1.82, z = 0.04) {
-  const vertices = new Float32Array([
-    0, height / 2, z,
-    -width / 2, -height / 2, z,
-    width / 2, -height / 2, z,
-    0, height / 2, z,
-  ]);
+function createTriangleLineGeometry(width = 2.04, height = 1.82, z = 0.04, segments = 1) {
+  const corners = [[0, height / 2], [-width / 2, -height / 2], [width / 2, -height / 2], [0, height / 2]];
+  const vertices = [];
+  for (let edge = 0; edge < 3; edge += 1) {
+    for (let step = 0; step < segments; step += 1) {
+      const progress = step / segments;
+      vertices.push(
+        lerp(corners[edge][0], corners[edge + 1][0], progress),
+        lerp(corners[edge][1], corners[edge + 1][1], progress),
+        z,
+      );
+    }
+  }
+  vertices.push(0, height / 2, z);
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(vertices, 3));
   return geometry;
+}
+
+function revealLine(geometry, progress) {
+  geometry.setDrawRange(0, Math.floor(geometry.attributes.position.count * progress));
 }
 
 function buildSigil() {
@@ -506,7 +520,8 @@ function buildSigil() {
   });
 
   const fill = new THREE.Mesh(createTriangleFillGeometry(), fillMaterial);
-  const outer = new THREE.Line(createTriangleLineGeometry(), outerMaterial);
+  const outer = new THREE.Line(createTriangleLineGeometry(2.04, 1.82, 0.04, 48), outerMaterial);
+  sigilOutline = outer.geometry;
   const innerEcho = new THREE.Line(createTriangleLineGeometry(1.38, 1.22, 0.1), innerEchoMaterial);
   const outerEcho = new THREE.Line(createTriangleLineGeometry(2.62, 2.34, -0.04), outerEchoMaterial);
   const transmutationEcho = new THREE.Line(createTriangleLineGeometry(2.04, 1.82, 0.18), transmutationMaterial);
@@ -779,7 +794,7 @@ function updateInstanced(mesh, data, time, sizeBoost = 1) {
   });
 
   applyThemeBlending(mesh.material, mood.theme);
-  mesh.material.opacity = (mesh === particleMesh ? 0.86 * themeOpacity : 0.68 * themeOpacity) * opacityFactor;
+  mesh.material.opacity = (mesh === particleMesh ? 0.86 * themeOpacity : 0.68 * themeOpacity) * opacityFactor * smoothstep(0.3, 0.95, introProgress);
   mesh.instanceMatrix.needsUpdate = true;
   if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
 }
@@ -818,7 +833,7 @@ function updateShards(time) {
 
   shardMesh.material.color.copy(mood.primary);
   applyThemeBlending(shardMesh.material, mood.theme);
-  shardMesh.material.opacity = lerp(mood.theme === "light" ? 0.07 : 0.16, mood.theme === "light" ? 0.22 : 0.42, fragment) * motionProfile.shardOpacity;
+  shardMesh.material.opacity = lerp(mood.theme === "light" ? 0.07 : 0.16, mood.theme === "light" ? 0.22 : 0.42, fragment) * motionProfile.shardOpacity * smoothstep(0.4, 1, introProgress);
   shardMesh.instanceMatrix.needsUpdate = true;
 }
 
@@ -830,6 +845,7 @@ function updateTrails(time) {
   trailGroup.scale.setScalar(lerp(0.82, 1.08, fragment));
 
   trails.forEach((trail, index) => {
+    revealLine(trail.geometry, smoothstep(0.12 + index * 0.025, 0.7 + index * 0.025, introProgress));
     trail.rotation.z = time * trail.userData.speed * motionProfile.speed + trail.userData.offset;
     trail.rotation.y = Math.sin(time * 0.13 * motionProfile.speed + index) * 0.15 * motionProfile.wobble;
     applyThemeBlending(trail.material, mood.theme);
@@ -844,9 +860,10 @@ function updateRings(time) {
   ringGroup.rotation.z = time * 0.035 * motionProfile.speed + scrollState.progress * TAU * 0.15;
   ringGroup.rotation.x = pointer.y * 0.045 * motionProfile.pointer;
   ringGroup.rotation.y = pointer.x * 0.06 * motionProfile.pointer;
-  ringGroup.scale.setScalar(lerp(0.92, 1.18, fragment));
+  ringGroup.scale.setScalar(lerp(0.92, 1.18, fragment) * lerp(0.82, 1, smoothstep(0, 0.85, introProgress)));
 
   rings.forEach((ring, index) => {
+    revealLine(ring.geometry, smoothstep(index * 0.055, 0.62 + index * 0.055, introProgress));
     ring.rotation.z = time * ring.userData.speed * motionProfile.speed * (index % 2 ? -1 : 1);
     ring.rotation.x = Math.sin(time * 0.15 * motionProfile.speed + index) * 0.08 * motionProfile.wobble;
     applyThemeBlending(ring.material, mood.theme);
@@ -875,11 +892,12 @@ function updateSigil(time, now) {
 
   sigilMaterials.forEach((material) => applyThemeBlending(material, mood.theme));
   sigilMaterials[0].color.set(mood.theme === "light" ? "#ffffff" : "#070707");
-  sigilMaterials[0].opacity = (mood.theme === "light" ? 0.04 : 0.24) * lerp(1, 0.08, exit) * motionProfile.sigilOpacity;
+  sigilMaterials[0].opacity = (mood.theme === "light" ? 0.04 : 0.24) * lerp(1, 0.08, exit) * motionProfile.sigilOpacity * smoothstep(0.25, 0.8, introProgress);
   sigilMaterials[1].color.copy(mood.primary);
   sigilMaterials[1].opacity = (mood.theme === "light" ? 0.95 : 0.88) * lerp(1, 0.08, exit) * motionProfile.sigilOpacity;
   sigilMaterials[2].color.copy(mood.tertiary);
-  sigilMaterials[2].opacity = (mood.theme === "light" ? 0.1 : 0.14) * lerp(1, 0.1, exit) * motionProfile.sigilOpacity;
+  sigilMaterials[2].opacity = (mood.theme === "light" ? 0.1 : 0.14) * lerp(1, 0.1, exit) * motionProfile.sigilOpacity * smoothstep(0.05, 0.75, introProgress);
+  revealLine(sigilOutline, smoothstep(0.08, 0.64, introProgress));
   routeSigilMaterials.forEach((material) => {
     applyThemeBlending(material, mood.theme);
     material.opacity = 0;
@@ -1475,6 +1493,8 @@ function scheduleResize() {
 }
 
 function handleRouteTransition(event) {
+  introProgress = 1;
+  delete root.dataset.homeIntro;
   const detail = event.detail || {};
   routeMotion.phase = detail.phase || root.dataset.routeTransitionPhase || "idle";
   routeMotion.direction = detail.direction || root.dataset.routeTransitionDirection || "forward";
@@ -1604,6 +1624,11 @@ function animate(now = 0) {
   lastAnimationFrame = now - (frameGap % targetFrameInterval);
   const frameStartedAt = performance.now();
   const time = reducedMotion ? 0 : now * 0.001;
+  if (introProgress < 1) {
+    introProgress = reducedMotion || routeMotion.phase !== "idle" || window.scrollY > 80
+      ? 1
+      : clamp((now - introStartedAt) / 2400);
+  }
   renderedFrameCount += 1;
   pointer.x = lerp(pointer.x, pointer.tx, 0.075);
   pointer.y = lerp(pointer.y, pointer.ty, 0.075);
@@ -1668,6 +1693,8 @@ function dispose() {
     else object.material?.dispose?.();
   });
   renderer.dispose();
+  delete root.dataset.homeIntro;
+  delete root.dataset.homeIntroStartedAt;
   document.querySelector(".theme-transition-sigil")?.remove();
   root.classList.remove("is-runtime-ready", "is-language-morphing", "is-theme-transitioning");
 }
@@ -1692,6 +1719,9 @@ function boot() {
 
   setLanguage(forcedLanguage === "en" || forcedLanguage === "pt" ? forcedLanguage : localStorage.getItem("rickson-portfolio-lang") || "pt");
   resize();
+  if (introProgress < 1) {
+    [sigilGroup, ringGroup, trailGroup].forEach((group) => group.position.copy(stageTarget));
+  }
   if (!visualsPaused) animationFrame = requestAnimationFrame(animate);
 }
 
