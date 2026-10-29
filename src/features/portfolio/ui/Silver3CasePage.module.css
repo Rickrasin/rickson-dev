@@ -738,7 +738,58 @@
   }
 }
 
+:global(:root[data-case-intro]) .rail,
+:global(:root[data-case-intro]) .topbar,
+:global(:root[data-case-intro]) .heroMedia {
+  animation: caseFadeIn 1000ms 100ms var(--ease) backwards;
+}
+
+:global(:root[data-case-intro]) .heroCopy > * {
+  animation: caseCopyReveal 900ms var(--ease) backwards;
+}
+
+:global(:root[data-case-intro]) .kicker { animation-delay: 220ms; }
+:global(:root[data-case-intro]) .heroCopy > h1 { animation-delay: 380ms; }
+:global(:root[data-case-intro]) .heroBody { animation-delay: 560ms; }
+:global(:root[data-case-intro]) .actions { animation-delay: 740ms; }
+
+:global(:root[data-case-intro]) .heroWebFrame,
+:global(:root[data-case-intro]) .heroMobileFrame {
+  animation: caseMediaReveal 1100ms 500ms var(--ease) backwards;
+}
+
+:global(:root[data-case-intro]) .heroMobileFrame { animation-delay: 700ms; }
+
+:global(:root[data-case-intro]) .heroCopy:focus-within > *,
+:global(:root[data-case-intro]) .rail:focus-within,
+:global(:root[data-case-intro]) .topbar:focus-within {
+  animation: none;
+}
+
+@keyframes caseFadeIn {
+  from { opacity: 0; }
+}
+
+@keyframes caseCopyReveal {
+  from { opacity: 0; transform: translateY(18px); filter: blur(5px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes caseMediaReveal {
+  from { opacity: 0; transform: translateY(22px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  :global(:root[data-case-intro]) .rail,
+  :global(:root[data-case-intro]) .topbar,
+  :global(:root[data-case-intro]) .heroMedia,
+  :global(:root[data-case-intro]) .heroCopy > *,
+  :global(:root[data-case-intro]) .heroWebFrame,
+  :global(:root[data-case-intro]) .heroMobileFrame {
+    animation: none;
+  }
+
   :global(:root.is-case-runtime-ready) [data-reveal] {
     opacity: 1;
     transform: none;

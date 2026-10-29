@@ -51,7 +51,7 @@ test("performance safeguards keep browser work under control", () => {
   assert.ok(existsSync(optimizedThreePath), "the optimized Three.js runtime is missing");
   assert.ok(statSync(optimizedThreePath).size < 700 * 1024, "the Three.js runtime grew beyond the size budget");
   assert.doesNotMatch(combinedSource, /\bunoptimized\b/, "portfolio images must use responsive optimization");
-  assert.match(combinedSource, /strategy="lazyOnload"/, "visual runtimes must load without blocking initial interaction");
+  assert.match(combinedSource, /strategy="afterInteractive"/, "visual runtimes must load after hydration to coordinate entrance animations");
   assert.match(combinedSource, /portfolio-visuals-pause/, "route changes must pause continuous visual work");
   assert.match(combinedSource, /visualQuality/, "visual runtimes must expose their adaptive quality mode");
   assert.match(combinedSource, /failIfMajorPerformanceCaveat/, "visual runtimes must detect software rendering when possible");
