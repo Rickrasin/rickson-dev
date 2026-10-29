@@ -68,6 +68,20 @@ const preferenceScript = `
     }
     document.documentElement.dataset.theme = theme;
   } catch {}
+
+  try {
+    var navigation = performance.getEntriesByType("navigation")[0];
+    if (location.pathname === "/" && (!location.hash || location.hash === "#hero") &&
+        navigation?.type !== "back_forward" &&
+        !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      document.documentElement.dataset.homeIntro = "true";
+      document.documentElement.dataset.homeIntroStartedAt = String(performance.now());
+      window.setTimeout(function () {
+        delete document.documentElement.dataset.homeIntro;
+        delete document.documentElement.dataset.homeIntroStartedAt;
+      }, 2800);
+    }
+  } catch {}
 `;
 
 export default function RootLayout({

@@ -180,7 +180,7 @@ function Topbar() {
 function HeroSection() {
   return (
     <section aria-label="Apresentação" className="hero shell" data-section="hero" id="hero">
-      <div className="hero-copy" data-reveal>
+      <div className="hero-copy">
         <p className="hero-kicker" data-i18n="hero.kicker">
           Rickson de Oliveira · Desenvolvedor de software
         </p>
@@ -202,7 +202,7 @@ function HeroSection() {
 
       <div aria-hidden="true" className="sigil-anchor" id="sigil-anchor" />
 
-      <a className="scroll-cue" data-reveal href="#method">
+      <a className="scroll-cue" href="#method">
         <span />
         <small data-i18n="hero.scroll">Role para explorar</small>
       </a>

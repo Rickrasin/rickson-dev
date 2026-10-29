@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 
-const runtimeSrc = "/portfolio-runtime.js?v=20260810-unified-1";
+const runtimeSrc = "/portfolio-runtime.js?v=20261029-home-intro-1";
 const runtimeMountEvent = "portfolio-runtime-mount";
 
 export function PortfolioRuntime() {
@@ -13,7 +13,7 @@ export function PortfolioRuntime() {
         window.dispatchEvent(new Event(runtimeMountEvent));
       }}
       src={runtimeSrc}
-      strategy="lazyOnload"
+      strategy="afterInteractive"
       type="module"
     />
   );
