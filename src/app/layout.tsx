@@ -71,14 +71,17 @@ const preferenceScript = `
 
   try {
     var navigation = performance.getEntriesByType("navigation")[0];
-    if (location.pathname === "/" && (!location.hash || location.hash === "#hero") &&
+    var isCaseIntro = location.pathname === "/cases/silver3";
+    var introKey = isCaseIntro ? "caseIntro" : "homeIntro";
+    if ((location.pathname === "/" || isCaseIntro) &&
+        (!location.hash || location.hash === (isCaseIntro ? "#case-intro" : "#hero")) &&
         navigation?.type !== "back_forward" &&
         !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      document.documentElement.dataset.homeIntro = "true";
-      document.documentElement.dataset.homeIntroStartedAt = String(performance.now());
+      document.documentElement.dataset[introKey] = "true";
+      document.documentElement.dataset[introKey + "StartedAt"] = String(performance.now());
       window.setTimeout(function () {
-        delete document.documentElement.dataset.homeIntro;
-        delete document.documentElement.dataset.homeIntroStartedAt;
+        delete document.documentElement.dataset[introKey];
+        delete document.documentElement.dataset[introKey + "StartedAt"];
       }, 2800);
     }
   } catch {}

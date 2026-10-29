@@ -286,6 +286,20 @@ export function Silver3CasePage() {
   const content = copy[language];
 
   useLayoutEffect(() => {
+    const root = document.documentElement;
+    const arrivingFromHome = root.dataset.routeTransitionDirection === "forward" &&
+      (root.dataset.routeTransitionPhase === "leaving" || root.dataset.routeTransitionPhase === "arriving");
+    if (!arrivingFromHome || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    root.dataset.caseIntro = "route";
+    const timer = window.setTimeout(() => { delete root.dataset.caseIntro; }, 2800);
+    return () => {
+      window.clearTimeout(timer);
+      delete root.dataset.caseIntro;
+    };
+  }, []);
+
+  useLayoutEffect(() => {
     const sourceTexts = pendingLanguageMorph.current;
     if (!sourceTexts) return;
     pendingLanguageMorph.current = null;
@@ -538,7 +552,7 @@ export function Silver3CasePage() {
 
       <main className={styles.main}>
         <section className={`shell ${styles.hero}`} data-case-section="case-intro" id="case-intro">
-          <div className={styles.heroCopy} data-reveal>
+          <div className={styles.heroCopy}>
             <p className={styles.kicker} data-s3-i18n>{content.hero.eyebrow}</p>
             <h1 data-s3-i18n>{content.hero.title}</h1>
             <p className={styles.heroBody} data-s3-i18n>{content.hero.body}</p>
@@ -548,7 +562,7 @@ export function Silver3CasePage() {
             </div>
           </div>
 
-          <div aria-label={content.hero.scene} className={styles.heroMedia} data-reveal>
+          <div aria-label={content.hero.scene} className={styles.heroMedia}>
             <div aria-hidden="true" className={styles.sceneTopline}><small>WEB / APP</small></div>
             <figure className={styles.heroWebFrame}>
               <div aria-hidden="true" className={styles.heroFrameChrome}>
@@ -667,8 +681,8 @@ export function Silver3CasePage() {
         onReady={() => {
           window.dispatchEvent(new Event("silver3-runtime-mount"));
         }}
-        src="/silver3-case-runtime.js?v=20260810-route-transmutation-11"
-        strategy="lazyOnload"
+        src="/silver3-case-runtime.js?v=20261029-case-intro-1"
+        strategy="afterInteractive"
         type="module"
       />
     </>

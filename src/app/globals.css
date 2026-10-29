@@ -5181,11 +5181,13 @@ html.is-theme-transitioning #magic-canvas {
 /* End light theme porcelain palette */
 
 /* First-load choreography; content remains visible without JavaScript or WebGL. */
-:root[data-home-intro] body::before {
+:root[data-home-intro] body::before,
+:root[data-case-intro="true"] body::before {
   animation: home-field-reveal 1100ms var(--ease) backwards;
 }
 
-:root[data-home-intro] body::after {
+:root[data-home-intro] body::after,
+:root[data-case-intro="true"] body::after {
   animation: home-field-reveal 1600ms 120ms var(--ease) backwards;
 }
 
@@ -5230,6 +5232,8 @@ html.is-theme-transitioning #magic-canvas {
 @media (prefers-reduced-motion: reduce) {
   :root[data-home-intro] body::before,
   :root[data-home-intro] body::after,
+  :root[data-case-intro="true"] body::before,
+  :root[data-case-intro="true"] body::after,
   :root[data-home-intro] .side-rail,
   :root[data-home-intro] .topbar,
   :root[data-home-intro] .hero-copy > *,

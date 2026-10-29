@@ -28,7 +28,7 @@ const initialState: TransitionState = {
 const leaveDuration = 1550;
 const arrivalDuration = 1250;
 const routeRuntimes: Record<Direction, string> = {
-  forward: "/silver3-case-runtime.js?v=20260810-route-transmutation-11",
+  forward: "/silver3-case-runtime.js?v=20261029-case-intro-1",
   back: "/portfolio-runtime.js?v=20261029-home-intro-1"
 };
 
