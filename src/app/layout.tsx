@@ -68,6 +68,23 @@ const preferenceScript = `
     }
     document.documentElement.dataset.theme = theme;
   } catch {}
+
+  try {
+    var navigation = performance.getEntriesByType("navigation")[0];
+    var isCaseIntro = location.pathname === "/cases/silver3";
+    var introKey = isCaseIntro ? "caseIntro" : "homeIntro";
+    if ((location.pathname === "/" || isCaseIntro) &&
+        (!location.hash || location.hash === (isCaseIntro ? "#case-intro" : "#hero")) &&
+        navigation?.type !== "back_forward" &&
+        !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      document.documentElement.dataset[introKey] = "true";
+      document.documentElement.dataset[introKey + "StartedAt"] = String(performance.now());
+      window.setTimeout(function () {
+        delete document.documentElement.dataset[introKey];
+        delete document.documentElement.dataset[introKey + "StartedAt"];
+      }, 2800);
+    }
+  } catch {}
 `;
 
 export default function RootLayout({

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+import { BrandLogo } from "@/shared/ui/BrandLogo";
 import { PortfolioRuntime } from "./PortfolioRuntime";
 
 const whatsappUrl = `https://wa.me/552139551042?text=${encodeURIComponent("Olá, Rick! Vim pelo seu site e gostaria de conversar sobre um projeto.")}`;
@@ -167,10 +168,8 @@ function SideRail() {
 function Topbar() {
   return (
     <header className="topbar">
-      <a className="wordmark" href="#hero">
-        Rickson
-        <br />
-        Dev
+      <a aria-label="Rickson.dev" className="brand-link" href="#hero">
+        <BrandLogo priority />
       </a>
       <a className="button secondary header-cta button--header magnetic" href="#contact">
         <span data-i18n="header.cta">Falar sobre projeto</span>
@@ -183,7 +182,7 @@ function Topbar() {
 function HeroSection() {
   return (
     <section aria-label="Apresentação" className="hero shell" data-section="hero" id="hero">
-      <div className="hero-copy" data-reveal>
+      <div className="hero-copy">
         <p className="hero-kicker" data-i18n="hero.kicker">
           Rickson de Oliveira · Desenvolvedor de software
         </p>
@@ -205,7 +204,7 @@ function HeroSection() {
 
       <div aria-hidden="true" className="sigil-anchor" id="sigil-anchor" />
 
-      <a className="scroll-cue" data-reveal href="#method">
+      <a className="scroll-cue" href="#method">
         <span />
         <small data-i18n="hero.scroll">Role para explorar</small>
       </a>

@@ -1,0 +1,24 @@
+.logo {
+  display: grid;
+  width: clamp(180px, 18vw, 240px);
+  max-width: 100%;
+  aspect-ratio: 1239 / 225;
+}
+
+.logo img {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: auto;
+}
+
+.light {
+  visibility: hidden;
+}
+
+:global(:root[data-theme="light"]) .light {
+  visibility: visible;
+}
+
+:global(:root[data-theme="light"]) .dark {
+  visibility: hidden;
+}

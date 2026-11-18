@@ -7,6 +7,9 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   canvas.dataset.runtimeActive = "true";
 
   const root = document.documentElement;
+  const introReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const introStartedAt = Number(root.dataset.caseIntroStartedAt);
+  let introProgress = root.dataset.caseIntro === "true" ? 0 : 1;
 
   function hasMajorGraphicsCaveat() {
     const probe = document.createElement("canvas");
@@ -93,11 +96,20 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   const coreFillMaterial = meshMaterial(gold, 0.13);
   const coreWireMaterial = meshMaterial(gold, 0.94, true);
 
-  function createLineLoop(points, material) {
+  const entrancePaths = [];
+  function createOutline(corners, material) {
+    const points = [];
+    for (let edge = 0; edge < corners.length; edge += 1) {
+      for (let step = 0; step < 48; step += 1) {
+        points.push(new THREE.Vector3().lerpVectors(corners[edge], corners[(edge + 1) % corners.length], step / 48));
+      }
+    }
+    points.push(corners[0]);
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const loop = new THREE.LineLoop(geometry, material);
-    runePivot.add(loop);
-    return loop;
+    const line = new THREE.Line(geometry, material);
+    entrancePaths.push(geometry);
+    runePivot.add(line);
+    return line;
   }
 
   function createCircle(radius, material, segments = 128, start = 0, length = Math.PI * 2) {
@@ -109,6 +121,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     }
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
     const line = new THREE.Line(geometry, material);
+    entrancePaths.push(geometry);
     runePivot.add(line);
     return line;
   }
@@ -125,7 +138,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   runePivot.add(triangleGroup);
   [2.42, 1.82, 1.2].forEach((size, index) => {
     const y = -0.08;
-    const triangle = createLineLoop([
+    const triangle = createOutline([
       new THREE.Vector3(0, y + size * 0.78, index * -0.025),
       new THREE.Vector3(-size * 0.72, y - size * 0.5, index * -0.025),
       new THREE.Vector3(size * 0.72, y - size * 0.5, index * -0.025)
@@ -403,12 +416,12 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
         : settling
           ? THREE.MathUtils.lerp(3.25, 1, settleMix)
           : 1;
-      material.opacity = material.userData.baseOpacity * baseEmphasis * emphasisMultiplier * lightFactor;
+      material.opacity = material.userData.baseOpacity * baseEmphasis * emphasisMultiplier * lightFactor * THREE.MathUtils.smoothstep(introProgress, 0, 0.55);
     });
     dustMaterial.color.copy(light ? ink : cyan);
     dustMaterial.opacity = routeActive
       ? 0
-      : dustMaterial.userData.baseOpacity * baseEmphasis * (light ? 0.45 : 1) * dustReveal;
+      : dustMaterial.userData.baseOpacity * baseEmphasis * (light ? 0.45 : 1) * dustReveal * THREE.MathUtils.smoothstep(introProgress, 0.35, 1);
   }
 
   function updateRune(time, delta, now) {
@@ -429,12 +442,13 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
       const a = from === 0 ? core.position : positions[from - 1];
       const b = to === 0 ? core.position : positions[to - 1];
       const offset = edgeIndex * 6;
+      const build = THREE.MathUtils.smoothstep(introProgress, 0.2 + edgeIndex * 0.02, 0.75 + edgeIndex * 0.02);
       linePositions[offset] = a.x;
       linePositions[offset + 1] = a.y;
       linePositions[offset + 2] = a.z;
-      linePositions[offset + 3] = b.x;
-      linePositions[offset + 4] = b.y;
-      linePositions[offset + 5] = b.z;
+      linePositions[offset + 3] = THREE.MathUtils.lerp(a.x, b.x, build);
+      linePositions[offset + 4] = THREE.MathUtils.lerp(a.y, b.y, build);
+      linePositions[offset + 5] = THREE.MathUtils.lerp(a.z, b.z, build);
     });
     connectionGeometry.attributes.position.needsUpdate = true;
 
@@ -498,7 +512,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
       });
       brokenRingA.rotation.z = 0;
       brokenRingB.rotation.z = 0;
-      networkGroup.scale.setScalar(1);
+      networkGroup.scale.setScalar(THREE.MathUtils.smoothstep(introProgress, 0.15, 0.8));
       networkGroup.rotation.set(0, 0, 0);
       core.scale.set(1, 1.35, 1);
       coreWire.scale.set(1, 1.35, 1);
@@ -556,6 +570,19 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     );
   }
 
+  function updateEntrance(now) {
+    if (introProgress === 1) return;
+    introProgress = introReducedMotion || routeMotion.phase !== "idle" || window.scrollY > 80
+      ? 1
+      : THREE.MathUtils.clamp((now - introStartedAt) / 2400, 0, 1);
+    entrancePaths.forEach((geometry, index) => {
+      const progress = THREE.MathUtils.smoothstep(introProgress, index * 0.035, 0.65 + index * 0.035);
+      geometry.setDrawRange(0, Math.floor(geometry.attributes.position.count * progress));
+    });
+    tickGeometry.setDrawRange(0, Math.floor(24 * THREE.MathUtils.smoothstep(introProgress, 0.2, 0.9)) * 2);
+    axisGeometry.setDrawRange(0, Math.floor(3 * THREE.MathUtils.smoothstep(introProgress, 0.15, 0.65)) * 2);
+  }
+
   function animate(now) {
     if (!canvas.isConnected || disposed) {
       dispose();
@@ -574,6 +601,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     const delta = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
     lastRenderedAt = now - (frameGap % (1000 / targetFps));
+    updateEntrance(now);
     updateThemeColors(delta);
     updateRune(now / 1000, delta, now);
     renderer.render(scene, camera);
@@ -614,6 +642,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
 
   function handleRouteTransition(event) {
     const detail = event.detail || {};
+    if (detail.phase === "leaving") delete root.dataset.caseIntro;
     root.classList.remove("is-route-transition-settling");
     routeMotion.phase = detail.phase || root.dataset.routeTransitionPhase || "idle";
     routeMotion.direction = detail.direction || root.dataset.routeTransitionDirection || "forward";
@@ -698,6 +727,8 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
       else object.material?.dispose?.();
     });
     renderer.dispose();
+    delete root.dataset.caseIntro;
+    delete root.dataset.caseIntroStartedAt;
     root.classList.remove("is-case-runtime-ready");
     root.classList.remove("is-route-transition-settling");
   }
@@ -707,6 +738,11 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   resize();
   setSection("case-intro");
   updateActiveSection();
+  if (introProgress < 1) {
+    const placement = targetPlacement();
+    rune.position.set(placement.x, placement.y, 0);
+    rune.scale.setScalar(placement.scale);
+  }
   window.addEventListener("resize", scheduleResize, { passive: true });
   window.addEventListener("scroll", scheduleActiveSectionUpdate, { passive: true });
   window.addEventListener("pointermove", onPointerMove, { passive: true });
