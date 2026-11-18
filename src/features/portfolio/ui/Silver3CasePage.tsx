@@ -756,7 +756,7 @@ export function Silver3CasePage() {
         onReady={() => {
           window.dispatchEvent(new Event("silver3-runtime-mount"));
         }}
-        src="/silver3-case-runtime.js?v=20261118-cafe-aqua"
+        src="/silver3-case-runtime.js?v=20261118-lojas-padrao"
         strategy="afterInteractive"
         type="module"
       />

@@ -4,6 +4,7 @@ import { BrandLogo } from "@/shared/ui/BrandLogo";
 import { PortfolioRuntime } from "./PortfolioRuntime";
 
 const whatsappUrl = `https://wa.me/552139551042?text=${encodeURIComponent("Olá, Rick! Vim pelo seu site e gostaria de conversar sobre um projeto.")}`;
+const ecommerceWhatsappUrl = `https://wa.me/552139551042?text=${encodeURIComponent("Olá, Rick! Vim pelo seu site e gostaria de conversar sobre uma loja online.")}`;
 
 function SpriteIcon({ id }: { id: string }) {
   return (
@@ -148,12 +149,16 @@ function SideRail() {
           <span>03</span>
           <strong data-i18n="nav.cases">Casos</strong>
         </a>
-        <a data-section-target="about" href="#about">
+        <a data-section-target="ecommerce" href="#lojas-virtuais">
           <span>04</span>
+          <strong data-i18n="nav.ecommerce">Lojas</strong>
+        </a>
+        <a data-section-target="about" href="#about">
+          <span>05</span>
           <strong data-i18n="nav.about">Sobre</strong>
         </a>
         <a data-section-target="contact" href="#contact">
-          <span>05</span>
+          <span>06</span>
           <strong data-i18n="nav.contact">Contato</strong>
         </a>
       </nav>
@@ -188,7 +193,8 @@ function HeroSection() {
         </p>
         <h1 data-i18n="hero.title">Sistemas sob medida.</h1>
         <p data-i18n="hero.body">
-          Feitos para simplificar o trabalho, organizar informações e reduzir tarefas manuais.
+          Desenvolvo sistemas web sob medida para organizar processos e reduzir tarefas manuais.
+          Também crio lojas virtuais para negócios venderem online.
         </p>
         <div className="hero-actions">
           <a className="button primary button--reveal magnetic" href="#projects">
@@ -442,11 +448,42 @@ function ProjectsSection() {
   );
 }
 
+function EcommerceSection() {
+  const offerings = [
+    ["ecommerce.card.brand", "Identidade visual", "ecommerce.list.brand", "Personalização visual alinhada à sua marca."],
+    ["ecommerce.card.catalog", "Catálogo", "ecommerce.list.catalog", "Organização do catálogo e das páginas de produtos."],
+    ["ecommerce.card.payment", "Pagamento e frete", "ecommerce.list.payment", "Configuração de recursos de pagamento e frete."],
+    ["ecommerce.card.devices", "Em qualquer tela", "ecommerce.list.devices", "Uma experiência adaptada para computador e celular."]
+  ];
+
+  return (
+    <section className="ecommerce shell" data-section="ecommerce" id="lojas-virtuais" aria-labelledby="ecommerce-title">
+      <div className="section-lead projects-lead" data-reveal>
+        <span data-i18n="ecommerce.label">{"// 04. Lojas online"}</span>
+        <h2 id="ecommerce-title" data-i18n="ecommerce.title">Lojas online pensadas para o seu negócio.</h2>
+        <p data-i18n="ecommerce.body">Desenvolvo e personalizo lojas online para apresentar seus produtos, facilitar a navegação e ajudar seus clientes a comprar com praticidade.</p>
+      </div>
+      <div className="method-strip ecommerce-strip">
+        {offerings.map(([titleKey, title, bodyKey, body]) => (
+          <article data-reveal key={titleKey}>
+            <h3 data-i18n={titleKey}>{title}</h3>
+            <p data-i18n={bodyKey}>{body}</p>
+          </article>
+        ))}
+      </div>
+      <a className="button primary magnetic ecommerce-cta" data-ecommerce-whatsapp data-reveal href={ecommerceWhatsappUrl} target="_blank" rel="noopener noreferrer">
+        <span data-i18n="ecommerce.cta">Falar sobre minha loja no WhatsApp</span>
+        <SpriteIcon id="icon-arrow" />
+      </a>
+    </section>
+  );
+}
+
 function AboutSection() {
   return (
     <section className="about shell" data-section="about" id="about">
       <div className="section-lead about-lead" data-reveal>
-        <span data-i18n="about.label">{"// 04. Sobre"}</span>
+        <span data-i18n="about.label">{"// 05. Sobre"}</span>
       </div>
 
       <div className="about-grid" data-reveal>
@@ -485,7 +522,7 @@ function ContactSection() {
     <section className="contact shell" data-section="contact" id="contact">
       <div className="contact-grid" data-reveal>
         <div>
-          <span data-i18n="contact.label">{"// 05. Contato"}</span>
+          <span data-i18n="contact.label">{"// 06. Contato"}</span>
           <h2 data-i18n="contact.title">Vamos tirar sua ideia do papel?</h2>
           <p className="contact-copy" data-i18n="contact.body">
             Se você tem algum projeto em mente, um processo lento ou uma rotina manual, posso te
@@ -538,6 +575,7 @@ export function PortfolioPage() {
         <HeroSection />
         <WorkflowSection />
         <ProjectsSection />
+        <EcommerceSection />
         <AboutSection />
         <ContactSection />
       </main>
