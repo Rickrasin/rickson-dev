@@ -20,6 +20,15 @@ const sources = sourceFiles.map((file) => readFileSync(`${root}/${file}`, "utf8"
 const combinedSource = sources.join("\n");
 const silver3Source = readFileSync(`${root}/src/features/portfolio/ui/Silver3CasePage.tsx`, "utf8");
 const portfolioRuntimeSource = readFileSync(`${root}/public/portfolio-runtime.js`, "utf8");
+const portfolioPageSource = readFileSync(`${root}/src/features/portfolio/ui/PortfolioPage.tsx`, "utf8");
+
+test("store section links to a dedicated WhatsApp conversation", () => {
+  assert.match(portfolioPageSource, /data-section-target="ecommerce" href="#lojas-virtuais"/);
+  assert.match(portfolioPageSource, /data-section="ecommerce" id="lojas-virtuais"/);
+  assert.match(portfolioPageSource, /data-ecommerce-whatsapp[^>]*href=\{ecommerceWhatsappUrl\}/);
+  assert.match(portfolioRuntimeSource, /dictionary\["ecommerce.whatsapp.message"\]/);
+  assert.match(portfolioRuntimeSource, /if \(sectionName === "ecommerce"\)/);
+});
 
 test("all referenced portfolio assets exist", () => {
   const assetReferences = new Set(combinedSource.match(/\/assets\/[A-Za-z0-9._/-]+/g) ?? []);
@@ -102,7 +111,7 @@ test("visual runtime cache versions stay synchronized", () => {
   const runtimeVersions = combinedSource.match(/(?:portfolio|silver3-case)-runtime\.js\?v=([A-Za-z0-9-]+)/g) ?? [];
   assert.ok(runtimeVersions.length >= 4, "expected every runtime entry point to be versioned");
   assert.ok(
-    runtimeVersions.every((reference) => reference.endsWith("20261118-cafe-aqua")),
+    runtimeVersions.every((reference) => reference.endsWith("20261118-lojas-padrao")),
     "runtime entry points must use the same fresh cache version"
   );
 });

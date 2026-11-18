@@ -72,12 +72,13 @@ const copy = {
     "nav.hero": "Início",
     "nav.services": "Fluxo",
     "nav.cases": "Casos",
+    "nav.ecommerce": "Lojas",
     "nav.about": "Sobre",
     "nav.contact": "Contato",
     "header.cta": "Falar sobre projeto",
     "hero.kicker": "Rickson de Oliveira · Desenvolvedor de software",
     "hero.title": "Sistemas sob medida.",
-    "hero.body": "Feitos para simplificar o trabalho, organizar informações e reduzir tarefas manuais.",
+    "hero.body": "Desenvolvo sistemas web sob medida para organizar processos e reduzir tarefas manuais. Também crio lojas virtuais para negócios venderem online.",
     "hero.primary": "Ver projetos",
     "hero.secondary": "Conversar sobre um sistema",
     "hero.scroll": "Role para explorar",
@@ -110,12 +111,25 @@ const copy = {
     "cases.three.body": "Loja virtual de purificadores, refis e acessórios, com layout personalizado, catálogo organizado e navegação adaptada para computador e celular.",
     "cases.three.meta": "Loja virtual · Tray",
     "cases.three.cta": "Visitar loja",
-    "about.label": "// 04. Sobre",
+    "ecommerce.label": "// 04. Lojas online",
+    "ecommerce.title": "Lojas online pensadas para o seu negócio.",
+    "ecommerce.body": "Desenvolvo e personalizo lojas online para apresentar seus produtos, facilitar a navegação e ajudar seus clientes a comprar com praticidade.",
+    "ecommerce.cta": "Falar sobre minha loja no WhatsApp",
+    "ecommerce.whatsapp.message": "Olá, Rick! Vim pelo seu site e gostaria de conversar sobre uma loja online.",
+    "ecommerce.card.brand": "Identidade visual",
+    "ecommerce.card.catalog": "Catálogo",
+    "ecommerce.card.payment": "Pagamento e frete",
+    "ecommerce.card.devices": "Em qualquer tela",
+    "ecommerce.list.brand": "Personalização visual alinhada à sua marca.",
+    "ecommerce.list.catalog": "Organização do catálogo e das páginas de produtos.",
+    "ecommerce.list.payment": "Configuração de recursos de pagamento e frete.",
+    "ecommerce.list.devices": "Uma experiência adaptada para computador e celular.",
+    "about.label": "// 05. Sobre",
     "about.title": "Olá, sou o Rickson, desenvolvedor de software.",
     "about.body": "Crio sistemas web sob medida para ajudar empresas e profissionais a organizarem melhor seus processos, centralizarem informações e reduzirem tarefas manuais no dia a dia.",
     "about.detail": "Gosto de entender de perto a rotina de cada cliente antes de desenvolver qualquer solução. Assim, consigo transformar problemas reais em ferramentas simples, funcionais e fáceis de usar.",
     "about.close": "Meu trabalho é transformar rotinas confusas em sistemas que as pessoas realmente conseguem usar no dia a dia.",
-    "contact.label": "// 05. Contato",
+    "contact.label": "// 06. Contato",
     "contact.title": "Vamos tirar sua ideia do papel?",
     "contact.body": "Se você tem algum projeto em mente, um processo lento ou uma rotina manual, posso te ajudar a transformar isso numa solução clara e funcional.",
     "contact.schedule": "Agendar uma conversa",
@@ -128,12 +142,13 @@ const copy = {
     "nav.hero": "Home",
     "nav.services": "Workflow",
     "nav.cases": "Cases",
+    "nav.ecommerce": "Stores",
     "nav.about": "About",
     "nav.contact": "Contact",
     "header.cta": "Discuss a project",
     "hero.kicker": "Rickson de Oliveira · Software Developer",
     "hero.title": "Custom-built systems.",
-    "hero.body": "Built to simplify work, organize information, and reduce manual tasks.",
+    "hero.body": "I develop custom web systems to organize processes and reduce manual tasks. I also create online stores for businesses to sell online.",
     "hero.primary": "See projects",
     "hero.secondary": "Talk about a system",
     "hero.scroll": "Scroll to explore",
@@ -166,12 +181,25 @@ const copy = {
     "cases.three.body": "An online store for water purifiers, replacement filters, and accessories, with a custom layout, organized catalog, and responsive navigation.",
     "cases.three.meta": "Online store · Tray",
     "cases.three.cta": "Visit store",
-    "about.label": "// 04. About",
+    "ecommerce.label": "// 04. Online stores",
+    "ecommerce.title": "Online stores designed for your business.",
+    "ecommerce.body": "I develop and customize online stores to showcase your products, make navigation easier, and help your customers shop with confidence.",
+    "ecommerce.cta": "Talk about my store on WhatsApp",
+    "ecommerce.whatsapp.message": "Hi, Rick! I found your website and would like to talk about an online store.",
+    "ecommerce.card.brand": "Visual identity",
+    "ecommerce.card.catalog": "Catalog",
+    "ecommerce.card.payment": "Payment and shipping",
+    "ecommerce.card.devices": "On any screen",
+    "ecommerce.list.brand": "Visual customization aligned with your brand.",
+    "ecommerce.list.catalog": "Organization of your catalog and product pages.",
+    "ecommerce.list.payment": "Configuration of payment and shipping features.",
+    "ecommerce.list.devices": "An experience adapted for desktop and mobile.",
+    "about.label": "// 05. About",
     "about.title": "Hi, I'm Rickson, a software developer.",
     "about.body": "I create custom web systems to help companies and professionals better organize their processes, centralize information, and reduce manual tasks in their daily work.",
     "about.detail": "I like to understand each client's routine up close before developing any solution. That way, I can turn real problems into simple, functional, and easy-to-use tools.",
     "about.close": "My work is to turn confusing routines into systems people can actually use every day.",
-    "contact.label": "// 05. Contact",
+    "contact.label": "// 06. Contact",
     "contact.title": "Ready to bring your idea to life?",
     "contact.body": "If you have a project in mind, a slow process, or a manual routine, I can help turn it into a clear and functional solution.",
     "contact.schedule": "Schedule a conversation",
@@ -187,6 +215,7 @@ const moodPresets = {
     hero: ["#EEBB46", "#384A55", "#D1A13A", 1],
     method: ["#384A55", "#EEBB46", "#2B383F", 0.86],
     projects: ["#2B383F", "#EEBB46", "#384A55", 0.92],
+    ecommerce: ["#EEBB46", "#384A55", "#D1A13A", 0.86],
     about: ["#D1A13A", "#384A55", "#EEBB46", 0.82],
     contact: ["#EEBB46", "#2B383F", "#D1A13A", 1],
   },
@@ -194,6 +223,7 @@ const moodPresets = {
     hero: ["#2B383F", "#384A55", "#EEBB46", 0.6],
     method: ["#384A55", "#2B383F", "#D1A13A", 0.56],
     projects: ["#2B383F", "#1D2F3B", "#384A55", 0.58],
+    ecommerce: ["#384A55", "#D1A13A", "#2B383F", 0.55],
     about: ["#384A55", "#D1A13A", "#2B383F", 0.54],
     contact: ["#1D2F3B", "#384A55", "#EEBB46", 0.6],
   },
@@ -203,6 +233,7 @@ const sectionEffects = {
   hero: { x: 72, y: 46, angle: 116, gap: 118, spot: 0.21, line: 0.048, opacity: 0.8, scale: 1.04 },
   method: { x: 63, y: 43, angle: 90, gap: 150, spot: 0.16, line: 0.05, opacity: 0.72, scale: 0.98 },
   projects: { x: 60, y: 45, angle: 0, gap: 104, spot: 0.17, line: 0.052, opacity: 0.74, scale: 1.06 },
+  ecommerce: { x: 67, y: 48, angle: 45, gap: 118, spot: 0.18, line: 0.048, opacity: 0.73, scale: 1.02 },
   about: { x: 58, y: 50, angle: 90, gap: 132, spot: 0.15, line: 0.045, opacity: 0.68, scale: 0.94 },
   contact: { x: 74, y: 53, angle: 136, gap: 124, spot: 0.19, line: 0.046, opacity: 0.78, scale: 1.08 },
 };
@@ -732,6 +763,15 @@ function shapePosition(particle, time, sectionName, intensity = 1, target = posi
     return target;
   }
 
+  if (sectionName === "ecommerce") {
+    const column = (particle.lane - 2) / 2;
+    const row = particle.row - 1;
+    target.x = column * halfW * 0.55 + Math.sin(angle + particle.seed) * halfW * 0.12;
+    target.y = row * halfH * 0.34 + Math.cos(angle * 0.7) * halfH * 0.1 + wobble;
+    target.z = heroZ * 0.65 + Math.sin(angle) * 0.12;
+    return target;
+  }
+
   if (sectionName === "about") {
     const step = particle.lane / 4;
     target.x = lerp(-halfW * 0.62, halfW * 0.62, step);
@@ -1104,7 +1144,8 @@ function jumpToAnchor(hash) {
   const targetSection = target.matches("[data-section]") ? target : target.closest("[data-section]");
   const sectionId = targetSection?.dataset.section || target.id;
   const maxScroll = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
-  const top = clamp(target.getBoundingClientRect().top + window.scrollY, 0, maxScroll);
+  const scrollMargin = Number.parseFloat(window.getComputedStyle(target).scrollMarginTop) || 0;
+  const top = clamp(target.getBoundingClientRect().top + window.scrollY - scrollMargin, 0, maxScroll);
   const startY = window.scrollY || 0;
   const distance = Math.abs(top - startY);
 
@@ -1428,6 +1469,9 @@ function setLanguage(lang, options = {}) {
   root.lang = lang === "en" ? "en" : "pt-BR";
   document.querySelectorAll("[data-whatsapp-contact]").forEach((link) => {
     link.href = `https://wa.me/552139551042?text=${encodeURIComponent(dictionary["contact.whatsapp.message"])}`;
+  });
+  document.querySelectorAll("[data-ecommerce-whatsapp]").forEach((link) => {
+    link.href = `https://wa.me/552139551042?text=${encodeURIComponent(dictionary["ecommerce.whatsapp.message"])}`;
   });
   applyLanguageText(dictionary, options.scramble);
   updateLanguageControl(lang, options.scramble);

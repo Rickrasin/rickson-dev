@@ -28,8 +28,8 @@ const initialState: TransitionState = {
 const leaveDuration = 1550;
 const arrivalDuration = 1250;
 const routeRuntimes: Record<Direction, string> = {
-  forward: "/silver3-case-runtime.js?v=20261118-cafe-aqua",
-  back: "/portfolio-runtime.js?v=20261118-cafe-aqua"
+  forward: "/silver3-case-runtime.js?v=20261118-lojas-padrao",
+  back: "/portfolio-runtime.js?v=20261118-lojas-padrao"
 };
 
 function warmRouteRuntime(direction: Direction) {

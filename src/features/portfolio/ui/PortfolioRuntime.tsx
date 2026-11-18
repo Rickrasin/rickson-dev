@@ -2,7 +2,7 @@
 
 import Script from "next/script";
 
-const runtimeSrc = "/portfolio-runtime.js?v=20261118-cafe-aqua";
+const runtimeSrc = "/portfolio-runtime.js?v=20261118-lojas-padrao";
 const runtimeMountEvent = "portfolio-runtime-mount";
 
 export function PortfolioRuntime() {
