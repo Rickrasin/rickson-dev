@@ -28,8 +28,8 @@ const initialState: TransitionState = {
 const leaveDuration = 1550;
 const arrivalDuration = 1250;
 const routeRuntimes: Record<Direction, string> = {
-  forward: "/silver3-case-runtime.js?v=20260810-route-transmutation-11",
-  back: "/portfolio-runtime.js?v=20260810-route-transmutation-11"
+  forward: "/silver3-case-runtime.js?v=20261118-cafe-aqua",
+  back: "/portfolio-runtime.js?v=20261118-cafe-aqua"
 };
 
 function warmRouteRuntime(direction: Direction) {
@@ -108,7 +108,6 @@ export function MagicRouteTransition() {
 
       const bounds = anchor.getBoundingClientRect();
       const clickedWithPointer = event.detail > 0;
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const direction: Direction = pathname.startsWith("/cases/") ? "back" : "forward";
       const nextState: TransitionState = {
         direction,
@@ -128,7 +127,7 @@ export function MagicRouteTransition() {
       navigationTimerRef.current = window.setTimeout(() => {
         const routerDestination = `${destination.pathname}${destination.search}`;
         router.push(routerDestination, { scroll: false });
-      }, reducedMotion ? 30 : leaveDuration);
+      }, leaveDuration);
     }
 
     document.addEventListener("click", handleRouteClick, true);
@@ -141,7 +140,6 @@ export function MagicRouteTransition() {
       pathname !== targetPathRef.current
     ) return;
 
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const previousScrollBehavior = document.documentElement.style.scrollBehavior;
     document.documentElement.style.scrollBehavior = "auto";
     const anchorId = decodeURIComponent(targetHashRef.current.replace(/^#/, ""));
@@ -175,7 +173,7 @@ export function MagicRouteTransition() {
         setTransition(initialState);
         document.documentElement.classList.remove("is-route-transitioning");
         finishRouteMotion();
-      }, reducedMotion ? 30 : arrivalDuration);
+      }, arrivalDuration);
     });
 
     return () => {

@@ -64,7 +64,7 @@ const preferenceScript = `
   try {
     var theme = localStorage.getItem("rickson-portfolio-theme");
     if (theme !== "light" && theme !== "dark") {
-      theme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      theme = "dark";
     }
     document.documentElement.dataset.theme = theme;
   } catch {}

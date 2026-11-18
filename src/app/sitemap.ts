@@ -12,6 +12,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${SITE.url}/cases/silver3`,
       changeFrequency: "monthly",
       priority: 0.8
+    },
+    {
+      url: `${SITE.url}/tray`,
+      changeFrequency: "monthly",
+      priority: 0.8
     }
   ];
 }
