@@ -391,7 +391,6 @@ function ProjectsSection() {
             <div className="project-card__copy">
               <div className="project-card__meta-row">
                 <span className="project-number">02</span>
-                <small data-i18n="cases.two.meta">Projeto autoral · Em desenvolvimento</small>
               </div>
               <h3 data-i18n="cases.two.title">Tifuns</h3>
               <p data-i18n="cases.two.body">
@@ -424,7 +423,6 @@ function ProjectsSection() {
             <div className="project-card__copy">
               <div className="project-card__meta-row">
                 <span className="project-number">03</span>
-                <small data-i18n="cases.three.meta">Loja virtual · Tray</small>
               </div>
               <h3 data-i18n="cases.three.title">Café Aqua</h3>
               <p data-i18n="cases.three.body">
