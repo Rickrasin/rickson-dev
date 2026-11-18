@@ -1,4 +1,7 @@
 .page {
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --brand-fog: #384a55;
+  --gold: #eebb46;
   --shop-bg: #faf9f5;
   --shop-ink: #172329;
   --shop-muted: #5a6265;
@@ -197,10 +200,10 @@
   .contact h2 { font-size: 40px; }
   .footer { min-height: 120px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
   .footer .brand { width: 145px; }
-  .desktopContact { display: none; }
+  .page .desktopContact { display: none; }
   .mobileContact { position: fixed; z-index: 8; inset: auto 0 0; display: block; padding: 9px max(20px, env(safe-area-inset-right, 0px)) calc(9px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px)); border-top: 1px solid var(--shop-line); background: #faf9f5f5; }
   .mobileContact a { display: flex; gap: 10px; }
-  .mobileContact svg { flex: none; width: 20px; height: 20px; }
+  .page .mobileContact svg { flex: none; width: 20px; height: 20px; }
   .page { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
 }
 

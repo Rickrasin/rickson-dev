@@ -5,6 +5,7 @@ import localFont from "next/font/local";
 import { StoreContact } from "./StoreContact";
 import { TrayContactTracking } from "./TrayContactTracking";
 import { TrayMotion } from "./TrayMotion";
+import "./tray-base.css";
 import shared from "./shared.module.css";
 import styles from "./page.module.css";
 
@@ -74,11 +75,11 @@ function CafeAquaPreview() {
 
 export default function TrayLandingPage() {
   return (
-    <div className={`${landingFont.variable} ${shared.page} ${styles.page}`}>
+    <div className={`tray-scope ${landingFont.variable} ${shared.page} ${styles.page}`}>
       <a className={shared.skipLink} href="#conteudo-tray">Ir para o conteúdo</a>
       <header className={shared.header}>
         <div className={`${shared.headerInner} ${styles.headerInner}`}>
-          <Link className={`${shared.brand} ${styles.headerBrand}`} href="/" target="_blank" rel="noopener noreferrer" aria-label="Rickson.dev — visitar meu site em nova aba"><Image src="/assets/brand/logo-horizontal.svg" alt="Rickson.dev" width={1239} height={225} sizes="(max-width: 360px) 110px, (max-width: 600px) 140px, 200px" preload /></Link>
+          <Link className={`${shared.brand} ${styles.headerBrand}`} href="/" prefetch={false} target="_blank" rel="noopener noreferrer" aria-label="Rickson.dev — visitar meu site em nova aba"><Image src="/assets/brand/logo-horizontal.svg" alt="Rickson.dev" width={1239} height={225} sizes="(max-width: 360px) 110px, (max-width: 600px) 140px, 200px" preload /></Link>
           <a className={`button secondary button--header ${styles.headerCta}`} href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-cta="tray-header"><span>Falar no WhatsApp</span><WhatsAppIcon /></a>
         </div>
       </header>
@@ -93,7 +94,7 @@ export default function TrayLandingPage() {
               <ContactLink location="hero">Pedir orçamento pelo WhatsApp</ContactLink>
             </div>
           </div>
-          <div className={styles.heroVisual}><Image src="/assets/lojas-virtuais/tray-store-hero-v2.png" alt="Ilustração de uma loja virtual com produtos, exibida em computador e celular." width={1254} height={1254} sizes="(max-width: 600px) 320px, (max-width: 820px) 420px, 520px" loading="eager" /></div>
+          <div className={styles.heroVisual}><Image src="/assets/lojas-virtuais/tray-store-hero-v2.png" alt="Ilustração de uma loja virtual com produtos, exibida em computador e celular." width={1254} height={1254} sizes="(max-width: 360px) 220px, (max-width: 600px) 240px, (max-width: 820px) 420px, 520px" loading="eager" fetchPriority="high" /></div>
         </section>
 
         <section className={styles.caseStudy} id="projeto-cafe-aqua" aria-labelledby="titulo-cafe-aqua">
@@ -203,7 +204,7 @@ export default function TrayLandingPage() {
       </main>
       <footer className={`${shared.footer} ${styles.footer}`}>
         <div className={styles.footerBrand}>
-          <Link className={`${shared.brand} ${styles.footerBrandLink}`} href="/" target="_blank" rel="noopener noreferrer" aria-label="Rickson.dev — visitar meu site em nova aba"><Image src="/assets/brand/logo-horizontal.svg" alt="" width={1239} height={225} sizes="(max-width: 600px) 180px, 220px" /></Link>
+          <Link className={`${shared.brand} ${styles.footerBrandLink}`} href="/" prefetch={false} target="_blank" rel="noopener noreferrer" aria-label="Rickson.dev — visitar meu site em nova aba"><Image src="/assets/brand/logo-horizontal.svg" alt="" width={1239} height={225} sizes="(max-width: 600px) 180px, 220px" /></Link>
           <p>Criação e implantação de lojas Tray.</p>
         </div>
         <a className={styles.backToTop} href="#conteudo-tray">Voltar ao topo<span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20V4m-6 6 6-6 6 6" /></svg></span></a>
