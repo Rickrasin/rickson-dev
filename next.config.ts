@@ -17,6 +17,16 @@ const nextConfig: NextConfig = {
         source: "/en",
         destination: "/",
         permanent: true
+      },
+      {
+        source: "/lojas-virtuais",
+        destination: "/tray",
+        permanent: true
+      },
+      {
+        source: "/lojas-virtuais/tray",
+        destination: "/tray",
+        permanent: true
       }
     ];
   },

@@ -15,6 +15,7 @@ const languageEvent = "rickson-portfolio-language-change";
 const themeEvent = "rickson-portfolio-theme-change";
 const languageGlyphs = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>/{}[]#$%&*+";
 const languageMorphSelector = "[data-s3-i18n]";
+let volatileLanguage: Language | null = null;
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(Math.max(value, min), max);
 const lerp = (start: number, end: number, amount: number) => start + (end - start) * amount;
@@ -24,24 +25,65 @@ function smoothstep(min: number, max: number, value: number) {
   return progress * progress * (3 - 2 * progress);
 }
 
+function playThemeTransitionSigil(originX: number, originY: number, theme: Theme) {
+  document.querySelector(".theme-transition-sigil")?.remove();
+  const sigil = document.createElement("span");
+  sigil.className = "theme-transition-sigil";
+  sigil.dataset.theme = theme;
+  sigil.setAttribute("aria-hidden", "true");
+  sigil.style.setProperty("--theme-transition-x", `${originX}px`);
+  sigil.style.setProperty("--theme-transition-y", `${originY}px`);
+  document.body.append(sigil);
+  sigil.addEventListener("animationend", () => sigil.remove(), { once: true });
+}
+
+function readStoredPreference(key: string) {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredPreference(key: string, value: string) {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Keep the in-memory and document state working for this visit.
+  }
+}
+
 function subscribeToLanguage(onStoreChange: () => void) {
-  window.addEventListener("storage", onStoreChange);
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key && event.key !== "rickson-portfolio-lang") return;
+    volatileLanguage = null;
+    onStoreChange();
+  };
+  window.addEventListener("storage", handleStorage);
   window.addEventListener(languageEvent, onStoreChange);
   return () => {
-    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener("storage", handleStorage);
     window.removeEventListener(languageEvent, onStoreChange);
   };
 }
 
 function getLanguageSnapshot(): Language {
-  return window.localStorage.getItem("rickson-portfolio-lang") === "en" ? "en" : "pt";
+  if (volatileLanguage) return volatileLanguage;
+  return readStoredPreference("rickson-portfolio-lang") === "en" ? "en" : "pt";
 }
 
 function subscribeToTheme(onStoreChange: () => void) {
-  window.addEventListener("storage", onStoreChange);
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key !== "rickson-portfolio-theme") return;
+    if (event.newValue === "light" || event.newValue === "dark") {
+      document.documentElement.dataset.theme = event.newValue;
+    }
+    onStoreChange();
+  };
+  window.addEventListener("storage", handleStorage);
   window.addEventListener(themeEvent, onStoreChange);
   return () => {
-    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener("storage", handleStorage);
     window.removeEventListener(themeEvent, onStoreChange);
   };
 }
@@ -273,6 +315,7 @@ function ThemeToggle({ label, onClick, theme }: {
 export function Silver3CasePage() {
   const pendingLanguageMorph = useRef<string[] | null>(null);
   const languageMorphToken = useRef(0);
+  const themeTransitionTimer = useRef(0);
   const language = useSyncExternalStore(
     subscribeToLanguage,
     getLanguageSnapshot,
@@ -284,6 +327,9 @@ export function Silver3CasePage() {
     (): Theme => "dark"
   );
   const content = copy[language];
+  const themeToggleLabel = language === "en"
+    ? theme === "light" ? "Use dark theme" : "Use light theme"
+    : theme === "light" ? "Usar tema escuro" : "Usar tema claro";
 
   useLayoutEffect(() => {
     const root = document.documentElement;
@@ -308,37 +354,17 @@ export function Silver3CasePage() {
     const root = document.documentElement;
     const languageToggle = document.querySelector<HTMLElement>(".language-toggle");
     const token = ++languageMorphToken.current;
-    const frameIds = new Set<number>();
-    const timeoutIds = new Set<number>();
+    let animationFrame = 0;
+    let unlockTimer = 0;
     const unlockers: Array<() => void> = [];
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const scheduleFrame = (callback: FrameRequestCallback) => {
-      const frameId = window.requestAnimationFrame((now) => {
-        frameIds.delete(frameId);
-        callback(now);
-      });
-      frameIds.add(frameId);
-    };
-
-    if (reducedMotion) {
-      elements.forEach((element) => element.classList.remove("is-text-morphing"));
-      root.classList.remove("is-language-morphing");
-      languageToggle?.classList.remove("is-scrambling");
-      return;
-    }
-
-    const morphs = elements.flatMap((element, index) => {
+    const targetMorphs = elements.flatMap((element, index) => {
       const sourceText = sourceTexts[index] ?? "";
       const targetText = element.textContent ?? "";
       if (sourceText === targetText) return [];
 
       const computed = window.getComputedStyle(element);
       const targetRect = element.getBoundingClientRect();
-      element.textContent = sourceText;
-      const sourceRect = element.getBoundingClientRect();
-      const width = Math.ceil(Math.max(sourceRect.width, targetRect.width));
-      const height = Math.ceil(Math.max(sourceRect.height, targetRect.height));
       const previousStyles = {
         display: element.style.display,
         width: element.style.width,
@@ -348,6 +374,25 @@ export function Silver3CasePage() {
         computed.display === "inline" ||
         computed.display === "inline-block" ||
         Boolean(element.closest(".header-cta, .button, .side-rail"));
+
+      return [{ element, index, sourceText, targetText, computed, targetRect, previousStyles, shouldLockWidth }];
+    });
+
+    // React has already committed the target language. Restore every outgoing
+    // text together, then measure that state in a second batched layout pass.
+    targetMorphs.forEach(({ element, sourceText }) => {
+      element.textContent = sourceText;
+    });
+
+    const measuredMorphs = targetMorphs.map((morph) => ({
+      ...morph,
+      sourceRect: morph.element.getBoundingClientRect()
+    }));
+    const startedAt = performance.now();
+    const morphs = measuredMorphs.map((morph) => {
+      const { element, index, sourceText, targetText, computed, sourceRect, targetRect, previousStyles, shouldLockWidth } = morph;
+      const width = Math.ceil(Math.max(sourceRect.width, targetRect.width));
+      const height = Math.ceil(Math.max(sourceRect.height, targetRect.height));
 
       if (shouldLockWidth && width > 0) {
         if (computed.display === "inline") element.style.display = "inline-block";
@@ -361,47 +406,57 @@ export function Silver3CasePage() {
         element.style.minHeight = previousStyles.minHeight;
       });
 
-      return [{ element, index, sourceText, targetText }];
+      const originalLength = sourceText.length;
+      const targetLength = targetText.length;
+      const delay = element.closest(".side-rail, .topbar") ? index * 14 : Math.min(260, index * 24);
+      element.classList.add("is-text-morphing");
+
+      return {
+        element,
+        sourceText,
+        targetText,
+        originalLength,
+        targetLength,
+        maxLength: Math.max(originalLength, targetLength, 1),
+        duration: Math.min(1180, 760 + targetLength * 6),
+        startedAt: startedAt + delay,
+        lastText: sourceText
+      };
     });
 
     if (morphs.length === 0) return;
 
     root.classList.add("is-language-morphing");
     languageToggle?.classList.add("is-scrambling");
-    let remainingMorphs = morphs.length;
 
-    const finishMorph = (element: HTMLElement, targetText: string) => {
-      element.textContent = targetText;
-      element.classList.remove("is-text-morphing");
-      remainingMorphs -= 1;
-      if (remainingMorphs > 0 || token !== languageMorphToken.current) return;
-      root.classList.remove("is-language-morphing");
-      languageToggle?.classList.remove("is-scrambling");
-    };
+    const tick = (now: number) => {
+      if (token !== languageMorphToken.current) return;
+      let hasPendingMorph = false;
 
-    morphs.forEach(({ element, index, sourceText, targetText }) => {
-      const originalLength = sourceText.length;
-      const targetLength = targetText.length;
-      const maxLength = Math.max(originalLength, targetLength, 1);
-      const duration = Math.min(1180, 760 + targetLength * 6);
-      const delay = element.closest(".side-rail, .topbar") ? index * 14 : Math.min(260, index * 24);
-      const startedAt = performance.now() + delay;
-      element.classList.add("is-text-morphing");
-
-      const glyphAt = (now: number, characterIndex: number) => {
-        const glyphIndex = Math.floor(
-          (now * 0.024 + characterIndex * 13 + token * 3 + sourceText.length) % languageGlyphs.length
-        );
-        return languageGlyphs[glyphIndex];
-      };
-
-      const tick = (now: number) => {
-        if (token !== languageMorphToken.current) return;
-        const progress = clamp((now - startedAt) / duration);
+      morphs.forEach((morph) => {
+        const { element, sourceText, targetText, originalLength, targetLength, maxLength, duration } = morph;
+        const progress = clamp((now - morph.startedAt) / duration);
         if (progress <= 0) {
-          scheduleFrame(tick);
+          hasPendingMorph = true;
           return;
         }
+
+        if (progress >= 1) {
+          if (morph.lastText !== targetText) {
+            element.textContent = targetText;
+            morph.lastText = targetText;
+          }
+          element.classList.remove("is-text-morphing");
+          return;
+        }
+
+        hasPendingMorph = true;
+        const glyphAt = (characterIndex: number) => {
+          const glyphIndex = Math.floor(
+            (now * 0.024 + characterIndex * 13 + token * 3 + sourceText.length) % languageGlyphs.length
+          );
+          return languageGlyphs[glyphIndex];
+        };
 
         const lengthProgress = smoothstep(0.12, 0.84, progress);
         const visibleLength = Math.max(1, Math.round(lerp(originalLength || targetLength, targetLength, lengthProgress)));
@@ -411,7 +466,7 @@ export function Silver3CasePage() {
         const glyphEnd = wave;
         const isScrambling = progress > 0.035;
 
-        element.textContent = Array.from({ length: visibleLength }, (_, characterIndex) => {
+        const nextText = Array.from({ length: visibleLength }, (_, characterIndex) => {
           const targetCharacter = targetText[characterIndex] || "";
           const originalCharacter = sourceText[characterIndex] || "";
           const spacingCharacter = targetCharacter || originalCharacter;
@@ -421,33 +476,38 @@ export function Silver3CasePage() {
           if (!isScrambling && originalCharacter) return originalCharacter;
           if (!targetCharacter) {
             if (isResolved) return "";
-            return isInWave ? glyphAt(now, characterIndex) : originalCharacter;
+            return isInWave ? glyphAt(characterIndex) : originalCharacter;
           }
           if (/\s/.test(spacingCharacter)) return isResolved ? targetCharacter : " ";
           if (/[.,:;!?()·]/.test(spacingCharacter)) {
-            return isResolved ? targetCharacter : glyphAt(now, characterIndex);
+            return isResolved ? targetCharacter : glyphAt(characterIndex);
           }
           if (isResolved) return targetCharacter;
-          return isInWave ? glyphAt(now, characterIndex) : originalCharacter || glyphAt(now, characterIndex);
+          return isInWave ? glyphAt(characterIndex) : originalCharacter || glyphAt(characterIndex);
         }).join("");
 
-        if (progress < 1) {
-          scheduleFrame(tick);
-          return;
+        if (nextText !== morph.lastText) {
+          element.textContent = nextText;
+          morph.lastText = nextText;
         }
+      });
 
-        finishMorph(element, targetText);
-      };
+      if (hasPendingMorph) {
+        animationFrame = window.requestAnimationFrame(tick);
+        return;
+      }
 
-      scheduleFrame(tick);
-    });
+      animationFrame = 0;
+      root.classList.remove("is-language-morphing");
+      languageToggle?.classList.remove("is-scrambling");
+      unlockTimer = window.setTimeout(() => unlockers.forEach((unlock) => unlock()), 180);
+    };
 
-    const unlockTimer = window.setTimeout(() => unlockers.forEach((unlock) => unlock()), 1600);
-    timeoutIds.add(unlockTimer);
+    animationFrame = window.requestAnimationFrame(tick);
 
     return () => {
-      frameIds.forEach((frameId) => window.cancelAnimationFrame(frameId));
-      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      window.cancelAnimationFrame(animationFrame);
+      window.clearTimeout(unlockTimer);
       unlockers.forEach((unlock) => unlock());
       morphs.forEach(({ element }) => element.classList.remove("is-text-morphing"));
       root.classList.remove("is-language-morphing");
@@ -466,11 +526,18 @@ export function Silver3CasePage() {
     };
   }, [language]);
 
+  useEffect(() => () => {
+    window.clearTimeout(themeTransitionTimer.current);
+    document.querySelector(".theme-transition-sigil")?.remove();
+    document.documentElement.classList.remove("is-theme-transitioning");
+  }, []);
+
   function toggleLanguage() {
     const next = language === "pt" ? "en" : "pt";
     pendingLanguageMorph.current = [...document.querySelectorAll<HTMLElement>(languageMorphSelector)]
       .map((element) => element.textContent ?? "");
-    window.localStorage.setItem("rickson-portfolio-lang", next);
+    volatileLanguage = next;
+    writeStoredPreference("rickson-portfolio-lang", next);
     window.dispatchEvent(new Event(languageEvent));
   }
 
@@ -479,19 +546,27 @@ export function Silver3CasePage() {
     const next = root.dataset.theme === "light" ? "dark" : "light";
     const applyTheme = () => {
       root.dataset.theme = next;
-      window.localStorage.setItem("rickson-portfolio-theme", next);
+      writeStoredPreference("rickson-portfolio-theme", next);
       window.dispatchEvent(new Event(themeEvent));
     };
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (prefersReducedMotion || typeof document.startViewTransition !== "function") {
-      applyTheme();
-      return;
-    }
-
     const toggleBounds = event.currentTarget.getBoundingClientRect();
     const originX = toggleBounds.left + toggleBounds.width / 2;
     const originY = toggleBounds.top + toggleBounds.height / 2;
+
+    if (typeof document.startViewTransition !== "function") {
+      window.clearTimeout(themeTransitionTimer.current);
+      playThemeTransitionSigil(originX, originY, next);
+      root.classList.add("is-theme-transitioning");
+      window.requestAnimationFrame(() => {
+        applyTheme();
+        themeTransitionTimer.current = window.setTimeout(() => {
+          root.classList.remove("is-theme-transitioning");
+          themeTransitionTimer.current = 0;
+        }, 820);
+      });
+      return;
+    }
+
     const revealRadius = Math.hypot(
       Math.max(originX, window.innerWidth - originX),
       Math.max(originY, window.innerHeight - originY)
@@ -523,18 +598,18 @@ export function Silver3CasePage() {
 
       <aside aria-label={language === "en" ? "Case navigation" : "Navegação do case"} className={`side-rail ${styles.rail}`}>
         <Link aria-label="Rickson Dev" className="rail-brand" href="/#projects">
-          <Image alt="" height={535} priority sizes="42px" src="/assets/rickson-logo.svg" width={759} />
+          <Image alt="" height={535} priority sizes="42px" src="/assets/rickson-logo.svg?v=2" width={759} />
         </Link>
         <nav className="rail-nav">
           {sectionIds.map((id, index) => (
-            <a className={index === 0 ? "is-active" : undefined} data-case-nav={id} href={`#${id}`} key={id}>
+            <a aria-current={index === 0 ? "location" : undefined} className={index === 0 ? "is-active" : undefined} data-case-nav={id} href={`#${id}`} key={id}>
               <span>{String(index + 1).padStart(2, "0")}</span>
               <strong>{content.nav[index]}</strong>
             </a>
           ))}
         </nav>
         <div className="rail-foot">
-          <ThemeToggle label={content.themeLabel} onClick={toggleTheme} theme={theme} />
+          <ThemeToggle label={themeToggleLabel} onClick={toggleTheme} theme={theme} />
           <div className="language-toggle">
             <button aria-label={content.languageLabel} className="is-active" onClick={toggleLanguage} type="button">
               <span aria-hidden="true" className="language-toggle__text" data-s3-i18n>{language.toUpperCase()}</span>
@@ -545,7 +620,7 @@ export function Silver3CasePage() {
 
       <header className={`topbar ${styles.topbar}`}>
         <Link aria-label="Rickson.dev" className="brand-link" href="/"><BrandLogo priority /></Link>
-        <Link className={`button secondary header-cta magnetic ${styles.backButton}`} data-route-transition href="/#projects">
+        <Link aria-label={content.back} className={`button secondary header-cta magnetic ${styles.backButton}`} data-route-transition href="/#projects">
           <span data-s3-i18n>← {content.back}</span>
         </Link>
       </header>
@@ -681,7 +756,7 @@ export function Silver3CasePage() {
         onReady={() => {
           window.dispatchEvent(new Event("silver3-runtime-mount"));
         }}
-        src="/silver3-case-runtime.js?v=20261029-case-intro-1"
+        src="/silver3-case-runtime.js?v=20261118-cafe-aqua"
         strategy="afterInteractive"
         type="module"
       />

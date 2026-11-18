@@ -20,13 +20,15 @@ let languageScrambleToken = 0;
 let textScrambleToken = 0;
 let revealObserver = null;
 let animationFrame = 0;
-let animationTimer = 0;
 let scrollUpdateFrame = 0;
 let resizeFrame = 0;
 let themeTransitionTimer = 0;
+let textScrambleFrame = 0;
+let textScrambleUnlockTimer = 0;
+let renderer = null;
 let disposed = false;
 let visualsPaused = document.hidden;
-const reducedMotionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+const introReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 const introStartedAt = Number(root.dataset.homeIntroStartedAt);
 let introProgress = root.dataset.homeIntro === "true" ? 0 : 1;
 const routeMotion = {
@@ -104,10 +106,10 @@ const copy = {
     "cases.two.body": "Projeto autoral de um portal sobre games, animes e e-sports, criado para explorar identidade visual, organização de conteúdo e uma experiência responsiva de leitura.",
     "cases.two.meta": "Projeto autoral · Em desenvolvimento",
     "cases.two.cta": "Visitar projeto",
-    "cases.three.title": "Em breve",
-    "cases.three.body": "Prepare um café e relaxe. O próximo projeto ainda está sendo preparado — e eu prefiro não servir nada pela metade.",
-    "cases.three.meta": "Próximo da fila",
-    "cases.three.break": "Pausa para o café · 03",
+    "cases.three.title": "Café Aqua",
+    "cases.three.body": "Loja virtual de purificadores, refis e acessórios, com layout personalizado, catálogo organizado e navegação adaptada para computador e celular.",
+    "cases.three.meta": "Loja virtual · Tray",
+    "cases.three.cta": "Visitar loja",
     "about.label": "// 04. Sobre",
     "about.title": "Olá, sou o Rickson, desenvolvedor de software.",
     "about.body": "Crio sistemas web sob medida para ajudar empresas e profissionais a organizarem melhor seus processos, centralizarem informações e reduzirem tarefas manuais no dia a dia.",
@@ -119,7 +121,8 @@ const copy = {
     "contact.schedule": "Agendar uma conversa",
     "contact.schedule.note": "Escolha um horário de 30 minutos para falarmos sobre seu projeto.",
     "contact.email": "Falar por e-mail",
-    "contact.linkedin": "Me chamar no LinkedIn",
+    "contact.whatsapp": "Me chame no WhatsApp",
+    "contact.whatsapp.message": "Olá, Rick! Vim pelo seu site e gostaria de conversar sobre um projeto.",
   },
   en: {
     "nav.hero": "Home",
@@ -159,10 +162,10 @@ const copy = {
     "cases.two.body": "An independent portal project about games, anime, and e-sports, created to explore visual identity, content organization, and a responsive reading experience.",
     "cases.two.meta": "Independent project · In development",
     "cases.two.cta": "Visit project",
-    "cases.three.title": "Coming soon",
-    "cases.three.body": "Make yourself a coffee and relax. The next project is still brewing — and I'd rather not serve anything half-finished.",
-    "cases.three.meta": "Next in line",
-    "cases.three.break": "Coffee break · 03",
+    "cases.three.title": "Café Aqua",
+    "cases.three.body": "An online store for water purifiers, replacement filters, and accessories, with a custom layout, organized catalog, and responsive navigation.",
+    "cases.three.meta": "Online store · Tray",
+    "cases.three.cta": "Visit store",
     "about.label": "// 04. About",
     "about.title": "Hi, I'm Rickson, a software developer.",
     "about.body": "I create custom web systems to help companies and professionals better organize their processes, centralize information, and reduce manual tasks in their daily work.",
@@ -174,7 +177,8 @@ const copy = {
     "contact.schedule": "Schedule a conversation",
     "contact.schedule.note": "Choose a 30-minute time slot to talk about your project.",
     "contact.email": "Email me",
-    "contact.linkedin": "Message me on LinkedIn",
+    "contact.whatsapp": "Message me on WhatsApp",
+    "contact.whatsapp.message": "Hi, Rick! I found your website and would like to talk about a project.",
   },
 };
 
@@ -245,12 +249,31 @@ const currentMoodCache = {
 };
 let lastFxSignature = "";
 
-const renderer = new THREE.WebGLRenderer({
-  canvas,
-  alpha: true,
-  antialias: visualQuality === "full",
-  powerPreference: "high-performance",
-});
+try {
+  renderer = new THREE.WebGLRenderer({
+    canvas,
+    alpha: true,
+    antialias: visualQuality === "full",
+    powerPreference: "high-performance",
+  });
+} catch {
+  visualQuality = "static";
+}
+
+if (!renderer) {
+  root.dataset.visualQuality = visualQuality;
+  root.classList.add("is-runtime-ready");
+  reveals.forEach((element) => element.classList.add("is-visible"));
+  setupPreferenceEvents();
+  initializePreferences();
+  window.addEventListener("portfolio-route-transition", () => {
+    runtimeController.abort();
+    document.querySelector(".theme-transition-sigil")?.remove();
+    root.classList.remove("is-runtime-ready", "is-language-morphing", "is-theme-transitioning");
+  }, { once: true, signal: runtimeSignal });
+  return;
+}
+
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, visualQuality === "software" ? 0.85 : visualQuality === "balanced" ? 1 : 1.25));
 renderer.setClearColor(0x000000, 0);
 if ("outputColorSpace" in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -273,7 +296,6 @@ const motionProfile = {
 
 function updateMotionProfile() {
   const compact = window.innerWidth <= 760;
-  const reduced = Boolean(reducedMotionQuery?.matches);
   const next = compact
     ? {
         particleStep: 2,
@@ -308,22 +330,7 @@ function updateMotionProfile() {
         pixelRatioCap: 1.25,
       };
 
-  if (reduced) {
-    next.particleStep = Math.max(next.particleStep, 3);
-    next.emberStep = Math.max(next.emberStep, 4);
-    next.shardStep = Math.max(next.shardStep, 3);
-    next.particleOpacity *= 0.62;
-    next.emberOpacity *= 0.44;
-    next.shardOpacity *= 0.44;
-    next.trailOpacity *= 0.35;
-    next.ringOpacity *= 0.38;
-    next.sigilOpacity *= 0.72;
-    next.pointer *= 0.2;
-    next.wobble *= 0.24;
-    next.speed *= 0.35;
-    next.scale *= 0.82;
-    next.pixelRatioCap = visualQuality === "software" ? 0.85 : 1;
-  } else if (visualQuality === "software") {
+  if (visualQuality === "software") {
     next.particleStep = Math.max(next.particleStep, 3);
     next.emberStep = Math.max(next.emberStep, 4);
     next.shardStep = Math.max(next.shardStep, 3);
@@ -1213,10 +1220,6 @@ function updateLanguageControl(lang, animate = false) {
   }
 }
 
-function prefersReducedMotion() {
-  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-}
-
 function unlockTextMorphBox(element) {
   const lock = element.__textMorphLock;
   if (!lock) return;
@@ -1227,108 +1230,175 @@ function unlockTextMorphBox(element) {
   element.__textMorphLock = null;
 }
 
-function lockTextMorphBox(element, targetText) {
-  unlockTextMorphBox(element);
+function prepareTextMorphs(elements, dictionary, token) {
+  const morphs = elements.flatMap((element, index) => {
+    const targetText = dictionary[element.dataset.i18n];
+    if (typeof targetText !== "string") return [];
 
-  const originalText = element.textContent || "";
-  const computed = getComputedStyle(element);
-  const currentRect = element.getBoundingClientRect();
+    const sourceText = element.textContent || "";
+    if (sourceText === targetText) return [];
 
-  element.textContent = targetText;
-  const targetRect = element.getBoundingClientRect();
-  element.textContent = originalText;
+    const computed = getComputedStyle(element);
+    return [{
+      element,
+      index,
+      sourceText,
+      targetText,
+      sourceRect: element.getBoundingClientRect(),
+      targetRect: null,
+      display: computed.display,
+      shouldLockWidth:
+        computed.display === "inline" ||
+        computed.display === "inline-block" ||
+        Boolean(element.closest(".header-cta, .button, .inline-action, .contact-line, .scroll-cue, .rail-nav")),
+      previousStyles: {
+        display: element.style.display,
+        width: element.style.width,
+        minWidth: element.style.minWidth,
+        minHeight: element.style.minHeight,
+      },
+      token,
+      lastText: sourceText,
+    }];
+  });
 
-  const width = Math.ceil(Math.max(currentRect.width, targetRect.width));
-  const height = Math.ceil(Math.max(currentRect.height, targetRect.height));
-  const display = computed.display;
-  const shouldLockWidth =
-    display === "inline" ||
-    display === "inline-block" ||
-    Boolean(element.closest(".header-cta, .button, .inline-action, .contact-line, .scroll-cue, .rail-nav"));
+  // Measure the target language in one layout pass instead of forcing a new
+  // layout for every individual text node.
+  morphs.forEach(({ element, targetText }) => {
+    element.textContent = targetText;
+  });
+  morphs.forEach((morph) => {
+    morph.targetRect = morph.element.getBoundingClientRect();
+  });
 
-  element.__textMorphLock = {
-    display: element.style.display,
-    width: element.style.width,
-    minWidth: element.style.minWidth,
-    minHeight: element.style.minHeight,
-  };
+  const startedAt = performance.now();
+  morphs.forEach((morph) => {
+    const {
+      element,
+      index,
+      sourceText,
+      targetText,
+      sourceRect,
+      targetRect,
+      display,
+      shouldLockWidth,
+      previousStyles,
+    } = morph;
+    element.textContent = sourceText;
+    element.__textMorphLock = previousStyles;
 
-  if (shouldLockWidth && width > 0) {
-    if (display === "inline") element.style.display = "inline-block";
-    element.style.width = `${width}px`;
-  }
+    const width = Math.ceil(Math.max(sourceRect.width, targetRect.width));
+    const height = Math.ceil(Math.max(sourceRect.height, targetRect.height));
+    if (shouldLockWidth && width > 0) {
+      if (display === "inline") element.style.display = "inline-block";
+      element.style.width = `${width}px`;
+    }
+    if (height > 0) element.style.minHeight = `${height}px`;
 
-  if (height > 0) element.style.minHeight = `${height}px`;
+    morph.originalLength = sourceText.length;
+    morph.targetLength = targetText.length;
+    morph.maxLength = Math.max(sourceText.length, targetText.length, 1);
+    morph.duration = Math.min(1180, 760 + targetText.length * 6);
+    morph.delay = element.closest(".side-rail, .topbar") ? index * 14 : Math.min(260, index * 24);
+    morph.startedAt = startedAt + morph.delay;
+    element.classList.add("is-text-morphing");
+  });
+
+  return morphs;
 }
 
-function scrambleTextElement(element, targetText, token, delay = 0) {
-  lockTextMorphBox(element, targetText);
-  const originalText = element.textContent || "";
-  const originalLength = originalText.length;
-  const targetLength = targetText.length;
-  const maxLength = Math.max(originalLength, targetLength, 1);
-  const duration = Math.min(1180, 760 + targetText.length * 6);
-  const startedAt = performance.now() + delay;
-  element.classList.add("is-text-morphing");
-
-  const glyphAt = (now, index) => {
-    const glyphIndex = Math.floor((now * 0.024 + index * 13 + token * 3 + originalText.length) % languageGlyphs.length);
+function scrambledTextAt(morph, now, progress) {
+  const lengthProgress = smoothstep(0.12, 0.84, progress);
+  const visibleLength = Math.max(1, Math.round(lerp(
+    morph.originalLength || morph.targetLength,
+    morph.targetLength,
+    lengthProgress,
+  )));
+  const band = Math.max(3, Math.round(morph.maxLength * 0.2));
+  const wave = progress * (morph.maxLength + band * 1.1);
+  const glyphStart = wave - band;
+  const glyphEnd = wave;
+  const isScrambling = progress > 0.035;
+  const glyphAt = (index) => {
+    const glyphIndex = Math.floor(
+      (now * 0.024 + index * 13 + morph.token * 3 + morph.sourceText.length) % languageGlyphs.length,
+    );
     return languageGlyphs[glyphIndex];
   };
 
+  return Array.from({ length: visibleLength }, (_, index) => {
+    const targetCharacter = morph.targetText[index] || "";
+    const originalCharacter = morph.sourceText[index] || "";
+    const characterForSpacing = targetCharacter || originalCharacter;
+    const isResolved = progress > 0.98 || index < glyphStart;
+    const isInWave = index <= glyphEnd;
+
+    if (!isScrambling && originalCharacter) return originalCharacter;
+    if (!targetCharacter) {
+      if (isResolved) return "";
+      return isInWave ? glyphAt(index) : originalCharacter;
+    }
+    if (/\s/.test(characterForSpacing)) return isResolved ? targetCharacter : " ";
+    if (/[.,:;!?()·]/.test(characterForSpacing)) return isResolved ? targetCharacter : glyphAt(index);
+    if (isResolved) return targetCharacter;
+    return isInWave ? glyphAt(index) : originalCharacter || glyphAt(index);
+  }).join("");
+}
+
+function runTextScramble(morphs, token) {
   const tick = (now) => {
     if (token !== textScrambleToken) return;
-    const progress = clamp((now - startedAt) / duration);
+    let hasPendingMorph = false;
 
-    if (progress <= 0) {
-      requestAnimationFrame(tick);
-      return;
-    }
-
-    const lengthProgress = smoothstep(0.12, 0.84, progress);
-    const visibleLength = Math.max(1, Math.round(lerp(originalLength || targetLength, targetLength, lengthProgress)));
-    const band = Math.max(3, Math.round(maxLength * 0.2));
-    const wave = progress * (maxLength + band * 1.1);
-    const glyphStart = wave - band;
-    const glyphEnd = wave;
-    const isScrambling = progress > 0.035;
-
-    element.textContent = Array.from({ length: visibleLength }, (_, index) => {
-      const targetCharacter = targetText[index] || "";
-      const originalCharacter = originalText[index] || "";
-      const characterForSpacing = targetCharacter || originalCharacter;
-      const isResolved = progress > 0.98 || index < glyphStart;
-      const isInWave = index <= glyphEnd;
-
-      if (!isScrambling && originalCharacter) return originalCharacter;
-      if (!targetCharacter) {
-        if (isResolved) return "";
-        return isInWave ? glyphAt(now, index) : originalCharacter;
+    morphs.forEach((morph) => {
+      const progress = clamp((now - morph.startedAt) / morph.duration);
+      if (progress <= 0) {
+        hasPendingMorph = true;
+        return;
       }
-      if (/\s/.test(characterForSpacing)) return isResolved ? targetCharacter : " ";
-      if (/[.,:;!?()·]/.test(characterForSpacing)) return isResolved ? targetCharacter : glyphAt(now, index);
-      if (isResolved) return targetCharacter;
-      return isInWave ? glyphAt(now, index) : originalCharacter || glyphAt(now, index);
-    }).join("");
 
-    if (progress < 1) {
-      requestAnimationFrame(tick);
+      if (progress >= 1) {
+        if (morph.lastText !== morph.targetText) {
+          morph.element.textContent = morph.targetText;
+          morph.lastText = morph.targetText;
+        }
+        morph.element.classList.remove("is-text-morphing");
+        return;
+      }
+
+      hasPendingMorph = true;
+      const nextText = scrambledTextAt(morph, now, progress);
+      if (nextText !== morph.lastText) {
+        morph.element.textContent = nextText;
+        morph.lastText = nextText;
+      }
+    });
+
+    if (hasPendingMorph) {
+      textScrambleFrame = requestAnimationFrame(tick);
       return;
     }
 
-    element.textContent = targetText;
-    element.classList.remove("is-text-morphing");
-    window.setTimeout(() => unlockTextMorphBox(element), 180);
+    textScrambleFrame = 0;
+    root.classList.remove("is-language-morphing");
+    textScrambleUnlockTimer = window.setTimeout(() => {
+      morphs.forEach(({ element }) => unlockTextMorphBox(element));
+      textScrambleUnlockTimer = 0;
+    }, 180);
   };
 
-  requestAnimationFrame(tick);
+  textScrambleFrame = requestAnimationFrame(tick);
 }
 
 function applyLanguageText(dictionary, animate = false) {
   const elements = [...document.querySelectorAll("[data-i18n]")];
-  const shouldAnimate = animate && !prefersReducedMotion();
+  const shouldAnimate = animate;
 
   textScrambleToken += 1;
+  cancelAnimationFrame(textScrambleFrame);
+  window.clearTimeout(textScrambleUnlockTimer);
+  textScrambleFrame = 0;
+  textScrambleUnlockTimer = 0;
   elements.forEach((element) => {
     element.classList.remove("is-text-morphing");
     unlockTextMorphBox(element);
@@ -1345,25 +1415,23 @@ function applyLanguageText(dictionary, animate = false) {
 
   const token = textScrambleToken;
   root.classList.add("is-language-morphing");
-  elements.forEach((element, index) => {
-    const value = dictionary[element.dataset.i18n];
-    if (!value) return;
-    const isChrome = element.closest(".side-rail, .topbar");
-    const delay = isChrome ? index * 14 : Math.min(260, index * 24);
-    scrambleTextElement(element, value, token, delay);
-  });
-
-  window.setTimeout(() => {
-    if (token === textScrambleToken) root.classList.remove("is-language-morphing");
-  }, 1600);
+  const morphs = prepareTextMorphs(elements, dictionary, token);
+  if (morphs.length === 0) {
+    root.classList.remove("is-language-morphing");
+    return;
+  }
+  runTextScramble(morphs, token);
 }
 
 function setLanguage(lang, options = {}) {
   const dictionary = copy[lang] || copy.pt;
   root.lang = lang === "en" ? "en" : "pt-BR";
+  document.querySelectorAll("[data-whatsapp-contact]").forEach((link) => {
+    link.href = `https://wa.me/552139551042?text=${encodeURIComponent(dictionary["contact.whatsapp.message"])}`;
+  });
   applyLanguageText(dictionary, options.scramble);
   updateLanguageControl(lang, options.scramble);
-  localStorage.setItem("rickson-portfolio-lang", lang);
+  writePreference("rickson-portfolio-lang", lang);
 }
 
 function applyTheme(theme) {
@@ -1373,8 +1441,8 @@ function applyTheme(theme) {
     themeToggle.setAttribute("aria-checked", String(theme === "light"));
     themeToggle.setAttribute("aria-label", theme === "light" ? "Usar tema escuro" : "Usar tema claro");
   }
-  localStorage.setItem("rickson-portfolio-theme", theme);
-  updateFxVariables(true);
+  writePreference("rickson-portfolio-theme", theme);
+  if (renderer) updateFxVariables(true);
 }
 
 function playThemeTransitionSigil(originX, originY, theme) {
@@ -1391,8 +1459,7 @@ function playThemeTransitionSigil(originX, originY, theme) {
 
 function setTheme(theme, options = {}) {
   const shouldAnimate = options.animate
-    && root.dataset.theme !== theme
-    && !reducedMotionQuery?.matches;
+    && root.dataset.theme !== theme;
 
   if (!shouldAnimate) {
     applyTheme(theme);
@@ -1510,12 +1577,10 @@ function finishRouteTransition() {
 function pauseVisuals() {
   visualsPaused = true;
   cancelAnimationFrame(animationFrame);
-  window.clearTimeout(animationTimer);
   window.clearTimeout(themeTransitionTimer);
   document.querySelector(".theme-transition-sigil")?.remove();
   root.classList.remove("is-theme-transitioning");
   animationFrame = 0;
-  animationTimer = 0;
   themeTransitionTimer = 0;
 }
 
@@ -1531,7 +1596,18 @@ function handleVisibilityChange() {
   else resumeVisuals();
 }
 
+function setupPreferenceEvents() {
+  languageToggle?.addEventListener("click", () => {
+    setLanguage(languageToggle.dataset.activeLang === "en" ? "pt" : "en", { scramble: true });
+  }, { signal: runtimeSignal });
+
+  themeToggle?.addEventListener("click", () => {
+    setTheme(root.dataset.theme === "light" ? "dark" : "light", { animate: true });
+  }, { signal: runtimeSignal });
+}
+
 function setupEvents() {
+  setupPreferenceEvents();
   window.addEventListener("scroll", scheduleScrollUpdate, { passive: true, signal: runtimeSignal });
   window.addEventListener("resize", scheduleResize, { passive: true, signal: runtimeSignal });
   window.addEventListener("wheel", () => {
@@ -1562,18 +1638,6 @@ function setupEvents() {
     }, { signal: runtimeSignal });
   });
 
-  languageToggle?.addEventListener("click", () => {
-    setLanguage(languageToggle.dataset.activeLang === "en" ? "pt" : "en", { scramble: true });
-  }, { signal: runtimeSignal });
-
-  themeToggle?.addEventListener("click", () => {
-    setTheme(root.dataset.theme === "light" ? "dark" : "light", { animate: true });
-  }, { signal: runtimeSignal });
-
-  reducedMotionQuery?.addEventListener?.("change", () => {
-    updateMotionProfile();
-    resize();
-  }, { signal: runtimeSignal });
 }
 
 function resize() {
@@ -1611,11 +1675,10 @@ function animate(now = 0) {
   }
   if (visualsPaused || document.hidden) return;
 
-  const reducedMotion = Boolean(reducedMotionQuery?.matches);
   const targetFps = 60;
   const targetFrameInterval = 1000 / targetFps;
 
-  if (!reducedMotion && now - lastAnimationFrame < targetFrameInterval) {
+  if (now - lastAnimationFrame < targetFrameInterval) {
     animationFrame = requestAnimationFrame(animate);
     return;
   }
@@ -1623,9 +1686,9 @@ function animate(now = 0) {
   const frameGap = lastAnimationFrame ? now - lastAnimationFrame : targetFrameInterval;
   lastAnimationFrame = now - (frameGap % targetFrameInterval);
   const frameStartedAt = performance.now();
-  const time = reducedMotion ? 0 : now * 0.001;
+  const time = now * 0.001;
   if (introProgress < 1) {
-    introProgress = reducedMotion || routeMotion.phase !== "idle" || window.scrollY > 80
+    introProgress = introReducedMotion || routeMotion.phase !== "idle" || window.scrollY > 80
       ? 1
       : clamp((now - introStartedAt) / 2400);
   }
@@ -1656,7 +1719,7 @@ function animate(now = 0) {
   }
   updateSigil(time, now);
   renderer.render(scene, camera);
-  if (visualQuality !== "software" && !reducedMotion && now >= qualityAssessmentStartedAt) {
+  if (visualQuality !== "software" && now >= qualityAssessmentStartedAt) {
     const frameCost = performance.now() - frameStartedAt;
     averageFrameCost = averageFrameCost ? lerp(averageFrameCost, frameCost, 0.08) : frameCost;
     const missedFrame = frameGap > targetFrameInterval * 1.8;
@@ -1665,26 +1728,19 @@ function animate(now = 0) {
       : Math.max(0, slowFrameStreak - 1);
     if (slowFrameStreak >= 8) lowerVisualQuality();
   }
-  if (reducedMotion) {
-    animationTimer = window.setTimeout(() => {
-      if (!visualsPaused && !document.hidden && !disposed) {
-        animationFrame = requestAnimationFrame(animate);
-      }
-    }, 250);
-  } else {
-    animationFrame = requestAnimationFrame(animate);
-  }
+  animationFrame = requestAnimationFrame(animate);
 }
 
 function dispose() {
   if (disposed) return;
   disposed = true;
   cancelAnimationFrame(animationFrame);
+  cancelAnimationFrame(textScrambleFrame);
   cancelAnimationFrame(navigationMotion.frame);
   cancelAnimationFrame(scrollUpdateFrame);
   cancelAnimationFrame(resizeFrame);
-  window.clearTimeout(animationTimer);
   window.clearTimeout(themeTransitionTimer);
+  window.clearTimeout(textScrambleUnlockTimer);
   runtimeController.abort();
   revealObserver?.disconnect();
   scene.traverse((object) => {
@@ -1692,11 +1748,37 @@ function dispose() {
     if (Array.isArray(object.material)) object.material.forEach((material) => material.dispose());
     else object.material?.dispose?.();
   });
-  renderer.dispose();
+  renderer?.dispose();
   delete root.dataset.homeIntro;
   delete root.dataset.homeIntroStartedAt;
   document.querySelector(".theme-transition-sigil")?.remove();
   root.classList.remove("is-runtime-ready", "is-language-morphing", "is-theme-transitioning");
+}
+
+function readPreference(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writePreference(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // The preference still applies for this visit when storage is unavailable.
+  }
+}
+
+function initializePreferences() {
+  const params = new URLSearchParams(window.location.search);
+  const forcedTheme = params.get("theme");
+  const forcedLanguage = params.get("lang");
+  const storedTheme = readPreference("rickson-portfolio-theme");
+  const defaultTheme = storedTheme === "light" || storedTheme === "dark" ? storedTheme : "dark";
+  setTheme(forcedTheme === "light" || forcedTheme === "dark" ? forcedTheme : defaultTheme);
+  setLanguage(forcedLanguage === "en" || forcedLanguage === "pt" ? forcedLanguage : readPreference("rickson-portfolio-lang") || "pt");
 }
 
 function boot() {
@@ -1710,14 +1792,7 @@ function boot() {
   setupRevealObserver();
   setupMagneticMotion();
 
-  const params = new URLSearchParams(window.location.search);
-  const forcedTheme = params.get("theme");
-  const forcedLanguage = params.get("lang");
-  const storedTheme = localStorage.getItem("rickson-portfolio-theme");
-  const prefersLight = window.matchMedia?.("(prefers-color-scheme: light)").matches;
-  setTheme(forcedTheme === "light" || forcedTheme === "dark" ? forcedTheme : storedTheme || (prefersLight ? "light" : "dark"));
-
-  setLanguage(forcedLanguage === "en" || forcedLanguage === "pt" ? forcedLanguage : localStorage.getItem("rickson-portfolio-lang") || "pt");
+  initializePreferences();
   resize();
   if (introProgress < 1) {
     [sigilGroup, ringGroup, trailGroup].forEach((group) => group.position.copy(stageTarget));

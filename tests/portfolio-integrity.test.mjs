@@ -19,6 +19,7 @@ const sourceFiles = [
 const sources = sourceFiles.map((file) => readFileSync(`${root}/${file}`, "utf8"));
 const combinedSource = sources.join("\n");
 const silver3Source = readFileSync(`${root}/src/features/portfolio/ui/Silver3CasePage.tsx`, "utf8");
+const portfolioRuntimeSource = readFileSync(`${root}/public/portfolio-runtime.js`, "utf8");
 
 test("all referenced portfolio assets exist", () => {
   const assetReferences = new Set(combinedSource.match(/\/assets\/[A-Za-z0-9._/-]+/g) ?? []);
@@ -80,6 +81,43 @@ test("Silver3 keeps the character-by-character language morph", () => {
     /<strong data-s3-i18n>/,
     "hidden rail labels must not become visible during the language morph"
   );
+});
+
+test("interactive motion stays active independently of the operating system preference", () => {
+  assert.doesNotMatch(
+    combinedSource,
+    /reducedMotionQuery|\breducedMotion\b/,
+    "the operating system preference must not silently skip portfolio motion"
+  );
+  assert.match(portfolioRuntimeSource, /function prepareTextMorphs/, "home morph measurements are not batched");
+  assert.match(portfolioRuntimeSource, /function runTextScramble/, "home language morph has no shared scheduler");
+  assert.doesNotMatch(
+    portfolioRuntimeSource,
+    /function scrambleTextElement/,
+    "home language morph must not start one animation loop per text element"
+  );
+});
+
+test("visual runtime cache versions stay synchronized", () => {
+  const runtimeVersions = combinedSource.match(/(?:portfolio|silver3-case)-runtime\.js\?v=([A-Za-z0-9-]+)/g) ?? [];
+  assert.ok(runtimeVersions.length >= 4, "expected every runtime entry point to be versioned");
+  assert.ok(
+    runtimeVersions.every((reference) => reference.endsWith("20261118-cafe-aqua")),
+    "runtime entry points must use the same fresh cache version"
+  );
+});
+
+test("preferences survive unavailable graphics and browser storage", () => {
+  assert.match(portfolioRuntimeSource, /visualQuality = "static"/, "home has no static fallback when WebGL fails");
+  assert.match(portfolioRuntimeSource, /function readPreference/, "home preference reads are not protected");
+  assert.match(portfolioRuntimeSource, /function writePreference/, "home preference writes are not protected");
+  assert.match(silver3Source, /function readStoredPreference/, "Silver3 preference reads are not protected");
+  assert.match(silver3Source, /volatileLanguage/, "Silver3 cannot change language when storage is blocked");
+});
+
+test("active case navigation is exposed to assistive technology", () => {
+  assert.match(silver3Source, /aria-current=.*location/, "Silver3 has no initial current navigation item");
+  assert.match(combinedSource, /setAttribute\("aria-current", "location"\)/, "runtime navigation does not announce the active section");
 });
 
 test("Silver3 links to a dedicated case without claiming unavailable capabilities", () => {

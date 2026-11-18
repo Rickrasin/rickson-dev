@@ -661,6 +661,7 @@
 }
 
 @media (max-width: 760px) {
+  .topbar .backButton:global(.header-cta):global(.button) { display: inline-flex; }
   .backButton { min-width: 0; width: auto; }
   .backButton span { font-size: 0; }
   .backButton span::after { content: "←"; font-size: 1rem; }
@@ -790,9 +791,4 @@
     animation: none;
   }
 
-  :global(:root.is-case-runtime-ready) [data-reveal] {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
 }

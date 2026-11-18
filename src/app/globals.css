@@ -176,7 +176,7 @@ main {
   place-items: center;
   width: 54px;
   height: 54px;
-  border: 1px solid var(--line);
+  border: 0;
   color: var(--accent);
   transition: border-color 320ms var(--ease), transform 320ms var(--ease), background 320ms var(--ease);
 }
@@ -185,13 +185,12 @@ main {
   width: 42px;
   height: 42px;
   object-fit: contain;
-  transition: transform 520ms var(--ease), filter 520ms var(--ease);
+  filter: drop-shadow(0 0 9px transparent);
+  transition: transform 520ms var(--ease), filter 220ms ease-out;
 }
 
 .rail-brand:hover {
-  border-color: var(--line-strong);
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-  transform: translateY(-2px);
+  background: transparent;
 }
 
 .rail-brand:hover img { transform: rotate(-8deg) scale(1.06); }
@@ -1026,16 +1025,6 @@ h1 {
   .contact { padding-bottom: 120px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-  }
-}
-
-
-
 :root {
   --canvas-opacity: 1;
   --section-backdrop:
@@ -1447,28 +1436,28 @@ html.is-section-travelling {
 
 .rail-brand {
   position: relative;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--surface) 68%, transparent);
+  overflow: visible;
+  background: transparent;
 }
 
 .rail-brand::before {
   position: absolute;
-  inset: 8px;
+  inset: 3px;
   content: "";
-  border: 1px solid color-mix(in srgb, var(--accent) 52%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 72%, transparent);
   opacity: 0;
-  transform: scale(0.38) rotate(-135deg);
-  transition: opacity 260ms var(--ease), transform 620ms var(--ease);
+  transform: scale(0) rotate(-135deg);
+  transition: opacity 280ms var(--ease), transform 720ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .rail-brand::after {
   position: absolute;
-  inset: -42%;
+  inset: 11px;
   content: "";
-  background: conic-gradient(from 180deg, transparent, color-mix(in srgb, var(--accent) 18%, transparent), transparent 42%);
+  border: 1px solid color-mix(in srgb, var(--brand-fog) 42%, transparent);
   opacity: 0;
-  transform: rotate(-35deg);
-  transition: opacity 320ms var(--ease), transform 720ms var(--ease);
+  transform: scale(0) rotate(135deg);
+  transition: opacity 320ms var(--ease), transform 800ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .rail-brand img {
@@ -1478,7 +1467,7 @@ html.is-section-travelling {
 
 .rail-brand:hover,
 .rail-brand:focus-visible {
-  transform: translateY(-2px);
+  background: transparent;
 }
 
 .rail-brand:hover::before,
@@ -1489,14 +1478,14 @@ html.is-section-travelling {
 
 .rail-brand:hover::after,
 .rail-brand:focus-visible::after {
-  opacity: 1;
-  transform: rotate(32deg);
+  opacity: .9;
+  transform: scale(1) rotate(45deg);
 }
 
 .rail-brand:hover img,
 .rail-brand:focus-visible img {
-  transform: translateY(-2px) rotate(7deg) scale(1.08);
-  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent) 34%, transparent));
+  transform: translateY(-1px) rotate(3deg) scale(1.04);
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--gold) 26%, transparent));
 }
 
 .rail-nav span {
@@ -1983,8 +1972,8 @@ h1 {
 .theme-toggle__track::before {
   inset: 8px;
   border: 1px solid color-mix(in srgb, var(--brand-fog) 48%, transparent);
-  opacity: 0.58;
-  transform: scale(1) rotate(45deg);
+  opacity: 0;
+  transform: scale(0) rotate(135deg);
   transition: opacity 220ms var(--ease), transform 620ms cubic-bezier(0.16, 1, 0.3, 1), border-color 220ms var(--ease);
 }
 
@@ -1992,8 +1981,8 @@ h1 {
   inset: 2px;
   border: 1px solid color-mix(in srgb, var(--accent) 64%, transparent);
   box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 10%, transparent);
-  opacity: 0.78;
-  transform: scale(1) rotate(0deg);
+  opacity: 0;
+  transform: scale(0) rotate(-135deg);
   transition: opacity 180ms var(--ease), transform 540ms cubic-bezier(0.16, 1, 0.3, 1), border-color 220ms var(--ease), box-shadow 220ms var(--ease);
 }
 
@@ -2005,14 +1994,15 @@ h1 {
 
 .theme-toggle:hover .theme-toggle__track,
 .theme-toggle:focus-visible .theme-toggle__track {
+  border-color: var(--line-strong);
   background: color-mix(in srgb, var(--accent) 8%, transparent);
   color: var(--text);
 }
 
 .theme-toggle:hover .theme-toggle__track::before,
 .theme-toggle:focus-visible .theme-toggle__track::before {
-  opacity: 0.95;
-  transform: scale(1.05) rotate(45deg);
+  opacity: 0.9;
+  transform: scale(1) rotate(45deg);
 }
 
 .theme-toggle:hover .theme-toggle__track::after,
@@ -2020,7 +2010,7 @@ h1 {
   border-color: color-mix(in srgb, var(--accent) 86%, transparent);
   box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 18%, transparent);
   opacity: 1;
-  transform: scale(1.04) rotate(0deg);
+  transform: scale(1) rotate(0deg);
 }
 
 .theme-toggle__icon {
@@ -2147,12 +2137,12 @@ h1 {
   position: relative;
   display: grid;
   place-items: center;
-  width: 54px;
-  height: 54px;
+  width: 42px;
+  height: 42px;
   min-width: 0;
   min-height: 0;
   padding: 0;
-  border: 0;
+  border: 1px solid transparent;
   background: transparent;
   color: var(--muted);
   overflow: visible;
@@ -2170,7 +2160,7 @@ h1 {
 }
 
 .language-toggle::before {
-  inset: 14px;
+  inset: 8px;
   border: 1px solid color-mix(in srgb, var(--brand-fog) 42%, transparent);
   box-shadow: 0 0 14px color-mix(in srgb, var(--brand-fog) 12%, transparent);
   transform: scale(0) rotate(135deg);
@@ -2178,7 +2168,7 @@ h1 {
 }
 
 .language-toggle::after {
-  inset: 8px;
+  inset: 2px;
   border: 1px solid color-mix(in srgb, var(--accent) 72%, transparent);
   box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 10%, transparent);
   transform: scale(0) rotate(-135deg);
@@ -2186,23 +2176,21 @@ h1 {
 }
 
 .language-toggle:hover,
-.language-toggle:focus-visible,
-.language-toggle.is-active {
+.language-toggle:focus-visible {
+  border-color: var(--line-strong);
   background: color-mix(in srgb, var(--accent) 8%, transparent);
   color: var(--text);
   transform: none;
 }
 
 .language-toggle:hover::before,
-.language-toggle:focus-visible::before,
-.language-toggle.is-active::before {
+.language-toggle:focus-visible::before {
   opacity: 0.9;
   transform: scale(1) rotate(45deg);
 }
 
 .language-toggle:hover::after,
-.language-toggle:focus-visible::after,
-.language-toggle.is-active::after {
+.language-toggle:focus-visible::after {
   opacity: 1;
   transform: scale(1) rotate(0deg);
 }
@@ -3424,6 +3412,21 @@ body {
   transform: translateY(-2px);
 }
 
+.button.primary.button--reveal {
+  background: transparent;
+  box-shadow: none;
+}
+
+.button.primary.button--reveal:is(:hover, :focus-visible) {
+  background:
+    radial-gradient(circle at 22% 50%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
+    var(--action-bg-hover);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 9%, transparent),
+    0 0 28px var(--action-glow);
+  color: var(--accent);
+}
+
 .button:hover::before,
 .button:focus-visible::before,
 .inline-action:hover::before,
@@ -3647,7 +3650,8 @@ body {
 /* End header/action consistency pass */
 
 /* Make the top CTA use the same button primitive */
-.topbar .header-cta.button {
+.topbar .header-cta.button,
+.button.button--header {
   pointer-events: auto;
   width: auto;
   min-width: 164px;
@@ -3669,12 +3673,14 @@ body {
   text-decoration: none;
 }
 
-.topbar .header-cta.button [data-i18n] {
+.topbar .header-cta.button [data-i18n],
+.button.button--header [data-i18n] {
   min-width: 0;
   text-align: left;
 }
 
-.topbar .header-cta.button svg {
+.topbar .header-cta.button svg,
+.button.button--header svg {
   width: 18px;
   height: 18px;
   color: currentColor;
@@ -3682,7 +3688,8 @@ body {
   transform: none;
 }
 
-.topbar .header-cta.button::before {
+.topbar .header-cta.button::before,
+.button.button--header::before {
   inset: 0;
   z-index: -1;
   background:
@@ -3692,7 +3699,8 @@ body {
   transition: opacity 260ms var(--ease), transform 720ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.topbar .header-cta.button::after {
+.topbar .header-cta.button::after,
+.button.button--header::after {
   display: none;
   inset: auto;
   z-index: -1;
@@ -3706,7 +3714,9 @@ body {
 }
 
 .topbar .header-cta.button:hover,
-.topbar .header-cta.button:focus-visible {
+.topbar .header-cta.button:focus-visible,
+.button.button--header:hover,
+.button.button--header:focus-visible {
   border-color: var(--action-border-hover);
   background:
     radial-gradient(circle at 22% 50%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
@@ -3719,19 +3729,25 @@ body {
 }
 
 .topbar .header-cta.button:hover::before,
-.topbar .header-cta.button:focus-visible::before {
+.topbar .header-cta.button:focus-visible::before,
+.button.button--header:hover::before,
+.button.button--header:focus-visible::before {
   opacity: 1;
   transform: translateX(78%) skewX(-16deg);
 }
 
 .topbar .header-cta.button:hover::after,
-.topbar .header-cta.button:focus-visible::after {
+.topbar .header-cta.button:focus-visible::after,
+.button.button--header:hover::after,
+.button.button--header:focus-visible::after {
   opacity: 0;
   transform: none;
 }
 
 .topbar .header-cta.button:hover svg,
-.topbar .header-cta.button:focus-visible svg {
+.topbar .header-cta.button:focus-visible svg,
+.button.button--header:hover svg,
+.button.button--header:focus-visible svg {
   color: var(--accent);
   filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent) 40%, transparent));
   transform: translateX(4px) rotate(-7deg);
@@ -4832,6 +4848,41 @@ a.project-card:focus-visible::before {
 }
 /* End project showcase hierarchy */
 
+/* Floating portfolio contact */
+.portfolio-whatsapp {
+  position: fixed;
+  z-index: 7;
+  right: max(24px, env(safe-area-inset-right, 0px));
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  box-shadow: none;
+  transition: background 260ms var(--ease), border-color 260ms var(--ease);
+}
+.portfolio-whatsapp::before, .portfolio-whatsapp::after { position: absolute; content: ""; pointer-events: none; opacity: 0; transform-origin: 50% 50%; }
+.portfolio-whatsapp::before { inset: 12px; border: 1px solid color-mix(in srgb, var(--brand-fog) 42%, transparent); box-shadow: 0 0 14px color-mix(in srgb, var(--brand-fog) 12%, transparent); transform: scale(0) rotate(135deg); transition: opacity 220ms var(--ease), transform 620ms cubic-bezier(0.16, 1, 0.3, 1); }
+.portfolio-whatsapp::after { inset: 3px; border: 1px solid color-mix(in srgb, var(--accent) 72%, transparent); box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 10%, transparent); transform: scale(0) rotate(-135deg); transition: opacity 180ms var(--ease), transform 540ms cubic-bezier(0.16, 1, 0.3, 1), border-color 220ms var(--ease); }
+.portfolio-whatsapp svg { position: relative; z-index: 1; width: 25px; height: 25px; }
+.portfolio-whatsapp__pulse { --pulse-color: var(--gold); position: absolute; inset: 4px; border: 1px solid var(--pulse-color); pointer-events: none; opacity: 0; animation: portfolio-whatsapp-pulse 2.4s ease-out infinite; }
+:root[data-theme="light"] .portfolio-whatsapp__pulse { --pulse-color: #795500; }
+@keyframes portfolio-whatsapp-pulse {
+  0%, 40%, 100% { opacity: 0; transform: scale(.65) rotate(-45deg); box-shadow: 0 0 0 transparent; }
+  55% { opacity: .75; }
+  95% { opacity: 0; transform: scale(1.12) rotate(0deg); box-shadow: 0 0 16px color-mix(in srgb, var(--pulse-color) 45%, transparent); }
+}
+.portfolio-whatsapp:hover .portfolio-whatsapp__pulse, .portfolio-whatsapp:focus-visible .portfolio-whatsapp__pulse { animation: none; opacity: 0; }
+.portfolio-whatsapp:hover, .portfolio-whatsapp:focus-visible { border-color: var(--line-strong); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.portfolio-whatsapp:hover::after, .portfolio-whatsapp:focus-visible::after { opacity: 1; transform: scale(1) rotate(0deg); }
+.portfolio-whatsapp:hover::before, .portfolio-whatsapp:focus-visible::before { opacity: .9; transform: scale(1) rotate(45deg); }
+.portfolio-whatsapp:focus-visible { outline: 3px solid #eebb46; outline-offset: 4px; }
+@media (max-width: 760px) {
+  .portfolio-whatsapp { right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(8px + env(safe-area-inset-bottom, 0px)); width: 48px; height: 54px; }
+}
 /* Mobile preference controls */
 @media (max-width: 760px) {
   body {
@@ -4839,7 +4890,7 @@ a.project-card:focus-visible::before {
   }
 
   .side-rail {
-    inset: auto 12px calc(8px + env(safe-area-inset-bottom)) 12px;
+    inset: auto calc(68px + env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left, 0px));
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 6px;
     padding: 7px 8px;
@@ -4864,7 +4915,7 @@ a.project-card:focus-visible::before {
 
   .rail-nav a {
     width: 100%;
-    min-width: 32px;
+    min-width: 0;
     height: 40px;
   }
 
@@ -4883,14 +4934,14 @@ a.project-card:focus-visible::before {
 
   .rail-foot .theme-toggle,
   .rail-foot .language-toggle {
-    width: 40px;
+    width: 34px;
     height: 40px;
-    flex: 0 0 40px;
+    flex: 0 0 34px;
   }
 
   .rail-foot .theme-toggle__track {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
   }
 
   .rail-foot .theme-toggle__track::before {
@@ -4902,11 +4953,11 @@ a.project-card:focus-visible::before {
   }
 
   .rail-foot .language-toggle::before {
-    inset: 10px;
+    inset: 8px;
   }
 
   .rail-foot .language-toggle::after {
-    inset: 5px;
+    inset: 2px;
   }
 }
 /* End mobile preference controls */
@@ -5097,13 +5148,6 @@ html.is-theme-transitioning #magic-canvas {
   transform: rotate(45deg) scale(1.08);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-group(root),
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation-duration: 0.01ms !important;
-  }
-}
 /* End theme transition */
 
 /* Light theme porcelain palette */

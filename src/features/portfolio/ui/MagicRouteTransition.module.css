@@ -127,12 +127,3 @@
   0% { opacity: var(--route-vignette-peak); }
   100% { opacity: 0; }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .routeTransition *,
-  .routeTransition *::before,
-  .routeTransition *::after {
-    animation-duration: 1ms !important;
-    animation-delay: 0ms !important;
-  }
-}

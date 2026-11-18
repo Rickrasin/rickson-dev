@@ -7,7 +7,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   canvas.dataset.runtimeActive = "true";
 
   const root = document.documentElement;
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const introReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const introStartedAt = Number(root.dataset.caseIntroStartedAt);
   let introProgress = root.dataset.caseIntro === "true" ? 0 : 1;
 
@@ -32,12 +32,28 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   const resourceLimited = Boolean(navigator.connection?.saveData);
   let visualQuality = hasMajorGraphicsCaveat() ? "software" : resourceLimited ? "balanced" : "full";
   const pixelRatioCap = () => visualQuality === "software" ? 0.85 : visualQuality === "balanced" ? 1 : window.innerWidth < 760 ? 1 : 1.25;
-  const renderer = new THREE.WebGLRenderer({
-    canvas,
-    alpha: true,
-    antialias: visualQuality === "full",
-    powerPreference: "high-performance"
-  });
+  let renderer = null;
+  try {
+    renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: visualQuality === "full",
+      powerPreference: "high-performance"
+    });
+  } catch {
+    visualQuality = "static";
+  }
+
+  if (!renderer) {
+    root.dataset.visualQuality = visualQuality;
+    root.classList.add("is-case-runtime-ready");
+    document.querySelectorAll("[data-reveal]").forEach((element) => element.classList.add("is-visible"));
+    window.addEventListener("portfolio-route-transition", () => {
+      root.classList.remove("is-case-runtime-ready", "is-route-transition-settling");
+    }, { once: true });
+    return;
+  }
+
   renderer.setClearColor(0x000000, 0);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, pixelRatioCap()));
   if ("outputColorSpace" in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -268,7 +284,6 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   let lastTime = performance.now();
   let lastRenderedAt = 0;
   let frameId = 0;
-  let animationTimer = 0;
   let scrollFrame = 0;
   let resizeFrame = 0;
   let disposed = false;
@@ -299,11 +314,12 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     targetSection = nextSection;
     root.dataset.section = nextSection;
     document.querySelectorAll("[data-case-nav]").forEach((link) => {
-      link.classList.toggle(
-        "is-active",
+      const isActive =
         link.dataset.caseNav === nextSection ||
-          (nextSection === "case-workflow" && link.dataset.caseNav === "case-delivery")
-      );
+        (nextSection === "case-workflow" && link.dataset.caseNav === "case-delivery");
+      link.classList.toggle("is-active", isActive);
+      if (isActive) link.setAttribute("aria-current", "location");
+      else link.removeAttribute("aria-current");
     });
     const palette = sectionPalette[nextSection];
     root.style.setProperty("--fx-primary", palette[0]);
@@ -556,7 +572,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
 
   function updateEntrance(now) {
     if (introProgress === 1) return;
-    introProgress = reducedMotion || routeMotion.phase !== "idle" || window.scrollY > 80
+    introProgress = introReducedMotion || routeMotion.phase !== "idle" || window.scrollY > 80
       ? 1
       : THREE.MathUtils.clamp((now - introStartedAt) / 2400, 0, 1);
     entrancePaths.forEach((geometry, index) => {
@@ -575,7 +591,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     if (visualsPaused || document.hidden) return;
 
     const targetFps = 60;
-    if (!reducedMotion && now - lastRenderedAt < 1000 / targetFps) {
+    if (now - lastRenderedAt < 1000 / targetFps) {
       frameId = requestAnimationFrame(animate);
       return;
     }
@@ -585,12 +601,11 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     const delta = Math.min((now - lastTime) / 1000, 0.05);
     lastTime = now;
     lastRenderedAt = now - (frameGap % (1000 / targetFps));
-    const motionDelta = reducedMotion ? Math.min(delta, 0.008) : delta;
     updateEntrance(now);
     updateThemeColors(delta);
-    updateRune(now / 1000, motionDelta, now);
+    updateRune(now / 1000, delta, now);
     renderer.render(scene, camera);
-    if (visualQuality !== "software" && !reducedMotion && now >= qualityAssessmentStartedAt) {
+    if (visualQuality !== "software" && now >= qualityAssessmentStartedAt) {
       const frameCost = performance.now() - frameStartedAt;
       averageFrameCost = averageFrameCost ? THREE.MathUtils.lerp(averageFrameCost, frameCost, 0.08) : frameCost;
       const missedFrame = frameGap > 1000 / targetFps * 1.8;
@@ -606,15 +621,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
         resize();
       }
     }
-    if (reducedMotion) {
-      animationTimer = window.setTimeout(() => {
-        if (!visualsPaused && !document.hidden && !disposed) {
-          frameId = requestAnimationFrame(animate);
-        }
-      }, 250);
-    } else {
-      frameId = requestAnimationFrame(animate);
-    }
+    frameId = requestAnimationFrame(animate);
   }
 
   function scheduleActiveSectionUpdate() {
@@ -654,9 +661,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   function pauseVisuals() {
     visualsPaused = true;
     cancelAnimationFrame(frameId);
-    window.clearTimeout(animationTimer);
     frameId = 0;
-    animationTimer = 0;
   }
 
   function resumeVisuals() {
@@ -682,7 +687,7 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
   const magneticCleanups = [];
   document.querySelectorAll(".magnetic").forEach((element) => {
     const move = (event) => {
-      if (window.innerWidth < 760 || reducedMotion) return;
+      if (window.innerWidth < 760) return;
       const rect = element.getBoundingClientRect();
       element.style.transform = `translate(${(event.clientX - rect.left - rect.width / 2) * 0.06}px, ${(event.clientY - rect.top - rect.height / 2) * 0.08}px)`;
     };
@@ -706,7 +711,6 @@ if (canvas && canvas.dataset.runtimeActive !== "true") {
     cancelAnimationFrame(frameId);
     cancelAnimationFrame(scrollFrame);
     cancelAnimationFrame(resizeFrame);
-    window.clearTimeout(animationTimer);
     window.removeEventListener("resize", scheduleResize);
     window.removeEventListener("scroll", scheduleActiveSectionUpdate);
     window.removeEventListener("pointermove", onPointerMove);
