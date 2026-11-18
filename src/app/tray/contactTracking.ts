@@ -4,7 +4,7 @@ export type ContactAnalytics = {
 };
 
 // Public identifiers from the "Clique no WhatsApp - Tray" action in Google Ads.
-export const trayAdsConversion = { id: "AW-10874621888", label: "r4jLCLGQvrodEMCftsEo" };
+export const trayAdsConversion = { id: "AW-18583181188", label: "dCbMCM-Hg7sdEISvk51F" };
 
 const placements = new Set(["tray-header", "tray-hero", "tray-scope", "tray-contact", "stores-floating", "stores-mobile"]);
 
