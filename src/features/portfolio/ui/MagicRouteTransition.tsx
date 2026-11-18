@@ -74,13 +74,14 @@ export function MagicRouteTransition() {
   }, [transition]);
 
   useEffect(() => {
+    if (pathname === "/tray") return;
     const prefetchTimer = window.setTimeout(() => {
       router.prefetch("/cases/silver3");
       router.prefetch("/");
     }, 2200);
 
     return () => window.clearTimeout(prefetchTimer);
-  }, [router]);
+  }, [pathname, router]);
 
   useEffect(() => {
     function handleRouteClick(event: MouseEvent) {

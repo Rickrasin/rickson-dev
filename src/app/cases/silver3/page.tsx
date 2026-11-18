@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Silver3CasePage } from "@/features/portfolio/ui/Silver3CasePage";
+import "../../globals.css";
 
 const title = "Gestão de chamados para a Silver3";
 const description =

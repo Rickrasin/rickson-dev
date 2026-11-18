@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { MagicRouteTransition } from "@/features/portfolio/ui/MagicRouteTransition";
 import { SITE } from "@/shared/config/site";
-import "./globals.css";
+import "./base.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE.url),

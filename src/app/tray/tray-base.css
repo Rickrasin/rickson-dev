@@ -1,0 +1,371 @@
+/* Button styles used by the Tray landing, scoped to this route. */
+
+
+:where(.tray-scope) .button {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 850;
+  overflow: hidden;
+  transition: border-color 260ms var(--ease), color 260ms var(--ease), transform 260ms var(--ease), background 260ms var(--ease), box-shadow 260ms var(--ease);
+}
+
+:where(.tray-scope) .button {
+  min-width: 164px;
+  padding: 0 18px;
+}
+
+:where(.tray-scope) .button svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+:where(.tray-scope) .button::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 18%, transparent), transparent);
+  transform: translateX(-120%);
+  transition: transform 520ms var(--ease);
+}
+
+:where(.tray-scope) .button::after {
+  position: absolute;
+  inset: 5px;
+  z-index: -1;
+  content: "";
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  opacity: 0;
+  transform: scale(0.86);
+  transition: opacity 320ms var(--ease), transform 420ms var(--ease);
+}
+
+:where(.tray-scope) .button.primary {
+  border-color: color-mix(in srgb, var(--accent) 72%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+:where(.tray-scope) .button.secondary { color: var(--muted-strong); }
+
+:where(.tray-scope) .button:hover,
+:where(.tray-scope) .button:focus-visible {
+  border-color: var(--line-strong);
+  color: var(--text);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--accent) 14%, transparent);
+  transform: translateY(-3px);
+}
+
+:where(.tray-scope) .button:hover::before,
+:where(.tray-scope) .button:focus-visible::before {
+  transform: translateX(120%);
+}
+
+:where(.tray-scope) .button:hover::after,
+:where(.tray-scope) .button:focus-visible::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+:where(.tray-scope) .button svg {
+  transition: transform 300ms var(--ease), color 300ms var(--ease);
+}
+
+:where(.tray-scope) .button:hover svg,
+:where(.tray-scope) .button:focus-visible svg {
+  color: var(--accent);
+  transform: translateX(4px) rotate(-8deg);
+}
+
+@media (max-width: 760px) {
+  :where(.tray-scope) .button { width: 100%; }
+}
+
+:where(.tray-scope) .button {
+  min-height: 52px;
+  border-color: color-mix(in srgb, var(--line) 84%, var(--accent));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 86%, transparent), color-mix(in srgb, var(--page-bg) 72%, transparent)),
+    radial-gradient(circle at 18% 50%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 54%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-fog) 10%, transparent);
+}
+
+:where(.tray-scope) .button {
+  min-width: 172px;
+  padding: 0 20px;
+}
+
+:where(.tray-scope) .button.primary {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 17%, var(--surface)), color-mix(in srgb, var(--accent) 7%, var(--page-bg))),
+    radial-gradient(circle at 18% 50%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 58%);
+}
+
+:where(.tray-scope) .button.secondary {
+  color: var(--muted-strong);
+  background: color-mix(in srgb, var(--surface) 60%, transparent);
+}
+
+:where(.tray-scope) .button::after {
+  inset: 7px;
+  border-color: color-mix(in srgb, var(--accent) 34%, transparent);
+  transform: scale(0.72) rotate(-8deg);
+}
+
+:where(.tray-scope) .button:hover::after,
+:where(.tray-scope) .button:focus-visible::after {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+:where(.tray-scope) .button.secondary [data-i18n] {
+  min-width: 74px;
+  text-align: left;
+}
+
+:where(.tray-scope) .button {
+  border-color: var(--action-border);
+  background:
+    radial-gradient(circle at 18% 50%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 58%),
+    var(--action-bg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-fog) 7%, transparent);
+}
+
+:where(.tray-scope) .button.primary {
+  border-color: color-mix(in srgb, var(--accent) 76%, var(--line));
+  background:
+    radial-gradient(circle at 18% 50%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 58%),
+    var(--action-bg);
+}
+
+:where(.tray-scope) .button.secondary {
+  color: var(--muted-strong);
+}
+
+:where(.tray-scope) .button::before {
+  background:
+    linear-gradient(105deg, transparent 0 30%, color-mix(in srgb, var(--accent) 22%, transparent) 44%, color-mix(in srgb, var(--brand-fog) 14%, transparent) 52%, transparent 68% 100%);
+  opacity: 0;
+  transform: translateX(-78%) skewX(-16deg);
+  transition: opacity 260ms var(--ease), transform 720ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:where(.tray-scope) .button::after {
+  inset: 7px;
+  border-color: var(--action-sigil);
+  opacity: 0;
+  transform: scale(0.62) rotate(18deg);
+  transition:
+    opacity 260ms var(--ease),
+    transform 580ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 320ms var(--ease);
+}
+
+:where(.tray-scope) .button:hover,
+:where(.tray-scope) .button:focus-visible {
+  border-color: var(--action-border-hover);
+  background:
+    radial-gradient(circle at 22% 50%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
+    var(--action-bg-hover);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 9%, transparent),
+    0 0 28px var(--action-glow);
+  color: var(--text);
+  transform: translateY(-2px);
+}
+
+:where(.tray-scope) .button.primary.button--reveal {
+  background: transparent;
+  box-shadow: none;
+}
+
+:where(.tray-scope) .button.primary.button--reveal:is(:hover, :focus-visible) {
+  background:
+    radial-gradient(circle at 22% 50%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
+    var(--action-bg-hover);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 9%, transparent),
+    0 0 28px var(--action-glow);
+  color: var(--accent);
+}
+
+:where(.tray-scope) .button:hover::before,
+:where(.tray-scope) .button:focus-visible::before {
+  opacity: 1;
+  transform: translateX(78%) skewX(-16deg);
+}
+
+:where(.tray-scope) .button:hover::after,
+:where(.tray-scope) .button:focus-visible::after {
+  border-color: color-mix(in srgb, var(--accent) 58%, transparent);
+  opacity: 0.88;
+  transform: scale(1) rotate(0deg);
+}
+
+:where(.tray-scope) .button:hover svg,
+:where(.tray-scope) .button:focus-visible svg {
+  color: var(--accent);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent) 40%, transparent));
+  transform: translateX(4px) rotate(-7deg);
+}
+
+:root[data-theme="light"] :where(.tray-scope) .button:hover,
+:root[data-theme="light"] :where(.tray-scope) .button:focus-visible {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72),
+    0 14px 34px rgba(139, 101, 22, 0.12);
+}
+:where(.tray-scope) .button.button--header {
+  pointer-events: auto;
+  width: auto;
+  min-width: 164px;
+  height: auto;
+  min-height: 52px;
+  padding: 0 20px;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--action-border);
+  background:
+    radial-gradient(circle at 18% 50%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 58%),
+    var(--action-bg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand-fog) 7%, transparent);
+  color: var(--muted-strong);
+  font-size: 0.88rem;
+  font-weight: 850;
+  line-height: normal;
+  text-decoration: none;
+}
+
+:where(.tray-scope) .button.button--header [data-i18n] {
+  min-width: 0;
+  text-align: left;
+}
+
+:where(.tray-scope) .button.button--header svg {
+  width: 18px;
+  height: 18px;
+  color: currentColor;
+  filter: none;
+  transform: none;
+}
+
+:where(.tray-scope) .button.button--header::before {
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(105deg, transparent 0 30%, color-mix(in srgb, var(--accent) 22%, transparent) 44%, color-mix(in srgb, var(--brand-fog) 14%, transparent) 52%, transparent 68% 100%);
+  opacity: 0;
+  transform: translateX(-78%) skewX(-16deg);
+  transition: opacity 260ms var(--ease), transform 720ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:where(.tray-scope) .button.button--header::after {
+  display: none;
+  inset: auto;
+  z-index: -1;
+  border: 0;
+  opacity: 0;
+  transform: none;
+  transition:
+    opacity 260ms var(--ease),
+    transform 580ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 320ms var(--ease);
+}
+
+:where(.tray-scope) .button.button--header:hover,
+:where(.tray-scope) .button.button--header:focus-visible {
+  border-color: var(--action-border-hover);
+  background:
+    radial-gradient(circle at 22% 50%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
+    var(--action-bg-hover);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 9%, transparent),
+    0 0 28px var(--action-glow);
+  color: var(--text);
+  transform: translateY(-2px);
+}
+
+:where(.tray-scope) .button.button--header:hover::before,
+:where(.tray-scope) .button.button--header:focus-visible::before {
+  opacity: 1;
+  transform: translateX(78%) skewX(-16deg);
+}
+
+:where(.tray-scope) .button.button--header:hover::after,
+:where(.tray-scope) .button.button--header:focus-visible::after {
+  opacity: 0;
+  transform: none;
+}
+
+:where(.tray-scope) .button.button--header:hover svg,
+:where(.tray-scope) .button.button--header:focus-visible svg {
+  color: var(--accent);
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent) 40%, transparent));
+  transform: translateX(4px) rotate(-7deg);
+}
+:where(.tray-scope) .button {
+  min-height: 56px;
+  line-height: 1;
+}
+
+:where(.tray-scope) .button [data-i18n] {
+  line-height: 1.05;
+}
+
+@media (max-width: 760px) {
+  :where(.tray-scope) .button {
+    min-height: 58px;
+  }
+}
+:where(.tray-scope) .portfolio-whatsapp {
+  position: fixed;
+  z-index: 7;
+  right: max(24px, env(safe-area-inset-right, 0px));
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  box-shadow: none;
+  transition: background 260ms var(--ease), border-color 260ms var(--ease);
+}
+:where(.tray-scope) .portfolio-whatsapp::before,
+:where(.tray-scope) .portfolio-whatsapp::after { position: absolute; content: ""; pointer-events: none; opacity: 0; transform-origin: 50% 50%; }
+:where(.tray-scope) .portfolio-whatsapp::before { inset: 12px; border: 1px solid color-mix(in srgb, var(--brand-fog) 42%, transparent); box-shadow: 0 0 14px color-mix(in srgb, var(--brand-fog) 12%, transparent); transform: scale(0) rotate(135deg); transition: opacity 220ms var(--ease), transform 620ms cubic-bezier(0.16, 1, 0.3, 1); }
+:where(.tray-scope) .portfolio-whatsapp::after { inset: 3px; border: 1px solid color-mix(in srgb, var(--accent) 72%, transparent); box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 10%, transparent); transform: scale(0) rotate(-135deg); transition: opacity 180ms var(--ease), transform 540ms cubic-bezier(0.16, 1, 0.3, 1), border-color 220ms var(--ease); }
+:where(.tray-scope) .portfolio-whatsapp svg { position: relative; z-index: 1; width: 25px; height: 25px; }
+:where(.tray-scope) .portfolio-whatsapp__pulse { --pulse-color: var(--gold); position: absolute; inset: 4px; border: 1px solid var(--pulse-color); pointer-events: none; opacity: 0; animation: portfolio-whatsapp-pulse 2.4s ease-out infinite; }
+:root[data-theme="light"] :where(.tray-scope) .portfolio-whatsapp__pulse { --pulse-color: #795500; }
+@keyframes portfolio-whatsapp-pulse {
+  0%, 40%, 100% { opacity: 0; transform: scale(.65) rotate(-45deg); box-shadow: 0 0 0 transparent; }
+  55% { opacity: .75; }
+  95% { opacity: 0; transform: scale(1.12) rotate(0deg); box-shadow: 0 0 16px color-mix(in srgb, var(--pulse-color) 45%, transparent); }
+}
+:where(.tray-scope) .portfolio-whatsapp:hover .portfolio-whatsapp__pulse,
+:where(.tray-scope) .portfolio-whatsapp:focus-visible .portfolio-whatsapp__pulse { animation: none; opacity: 0; }
+:where(.tray-scope) .portfolio-whatsapp:hover,
+:where(.tray-scope) .portfolio-whatsapp:focus-visible { border-color: var(--line-strong); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+:where(.tray-scope) .portfolio-whatsapp:hover::after,
+:where(.tray-scope) .portfolio-whatsapp:focus-visible::after { opacity: 1; transform: scale(1) rotate(0deg); }
+:where(.tray-scope) .portfolio-whatsapp:hover::before,
+:where(.tray-scope) .portfolio-whatsapp:focus-visible::before { opacity: .9; transform: scale(1) rotate(45deg); }
+:where(.tray-scope) .portfolio-whatsapp:focus-visible { outline: 3px solid #eebb46; outline-offset: 4px; }
+@media (max-width: 760px) {
+  :where(.tray-scope) .portfolio-whatsapp { right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(8px + env(safe-area-inset-bottom, 0px)); width: 48px; height: 54px; }
+}
