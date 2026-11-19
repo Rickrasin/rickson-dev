@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { MagicRouteTransition } from "@/features/portfolio/ui/MagicRouteTransition";
+import { BehaviorAnalytics } from "@/features/analytics/BehaviorAnalytics";
 import { SITE } from "@/shared/config/site";
 import "./base.css";
 
@@ -101,6 +102,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         {children}
         <MagicRouteTransition />
+        <BehaviorAnalytics />
       </body>
     </html>
   );

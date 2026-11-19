@@ -5,7 +5,6 @@ import localFont from "next/font/local";
 import { StoreContact } from "./StoreContact";
 import { TrayContactTracking } from "./TrayContactTracking";
 import { TrayMotion } from "./TrayMotion";
-import { TrayClarity } from "./TrayClarity";
 import "./tray-base.css";
 import shared from "./shared.module.css";
 import styles from "./page.module.css";
@@ -57,7 +56,7 @@ function ArrowRightIcon() {
 }
 
 function ContactLink({ location, children }: { location: string; children: string }) {
-  return <a className={`button primary button--reveal ${styles.contactCta}`} href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-clarity-mask="true" data-cta={`tray-${location}`}><span>{children}</span><WhatsAppIcon /></a>;
+  return <a className={`button primary button--reveal ${styles.contactCta}`} href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-cta={`tray-${location}`}><span>{children}</span><WhatsAppIcon /></a>;
 }
 
 function CafeAquaPreview() {
@@ -81,7 +80,7 @@ export default function TrayLandingPage() {
       <header className={shared.header}>
         <div className={`${shared.headerInner} ${styles.headerInner}`}>
           <Link className={`${shared.brand} ${styles.headerBrand}`} href="/" prefetch={false} target="_blank" rel="noopener noreferrer" aria-label="Rickson.dev — visitar meu site em nova aba"><Image src="/assets/brand/logo-horizontal.svg" alt="Rickson.dev" width={1239} height={225} sizes="(max-width: 360px) 110px, (max-width: 600px) 140px, 200px" preload /></Link>
-          <a className={`button secondary button--header ${styles.headerCta}`} href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-clarity-mask="true" data-cta="tray-header"><span>Falar no WhatsApp</span><WhatsAppIcon /></a>
+          <a className={`button secondary button--header ${styles.headerCta}`} href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-cta="tray-header"><span>Falar no WhatsApp</span><WhatsAppIcon /></a>
         </div>
       </header>
 
@@ -210,7 +209,6 @@ export default function TrayLandingPage() {
         </div>
         <a className={styles.backToTop} href="#conteudo-tray">Voltar ao topo<span aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20V4m-6 6 6-6 6 6" /></svg></span></a>
       </footer>
-      <TrayClarity />
       <StoreContact href={whatsappUrl}><WhatsAppIcon /></StoreContact>
       <TrayContactTracking />
       <TrayMotion />
