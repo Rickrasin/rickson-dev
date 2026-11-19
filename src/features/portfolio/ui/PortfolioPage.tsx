@@ -471,7 +471,7 @@ function EcommerceSection() {
           </article>
         ))}
       </div>
-      <a className="button primary magnetic ecommerce-cta" data-ecommerce-whatsapp data-reveal href={ecommerceWhatsappUrl} target="_blank" rel="noopener noreferrer">
+      <a className="button primary magnetic ecommerce-cta" data-ecommerce-whatsapp data-cta="home-ecommerce" data-reveal href={ecommerceWhatsappUrl} target="_blank" rel="noopener noreferrer">
         <span data-i18n="ecommerce.cta">Falar sobre minha loja no WhatsApp</span>
         <SpriteIcon id="icon-arrow" />
       </a>
@@ -551,7 +551,7 @@ function ContactSection() {
           <a
             className="contact-line magnetic"
             href={whatsappUrl}
-            data-whatsapp-contact
+            data-whatsapp-contact data-cta="home-contact"
             rel="noopener noreferrer"
             target="_blank"
           >
@@ -579,7 +579,7 @@ export function PortfolioPage() {
         <AboutSection />
         <ContactSection />
       </main>
-      <a className="portfolio-whatsapp" href={whatsappUrl} data-whatsapp-contact target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+      <a className="portfolio-whatsapp" href={whatsappUrl} data-whatsapp-contact data-cta="home-floating" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
         <span className="portfolio-whatsapp__pulse" aria-hidden="true" />
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.93 11.93 0 0 0 12.03 0C5.42 0 .04 5.38.04 11.99c0 2.11.55 4.17 1.59 5.99L0 24l6.17-1.62a11.98 11.98 0 0 0 5.85 1.49h.01c6.61 0 11.99-5.38 11.99-11.99 0-3.2-1.25-6.22-3.5-8.4ZM12.03 21.84h-.01a9.95 9.95 0 0 1-5.07-1.39l-.36-.21-3.66.96.98-3.57-.23-.37a9.93 9.93 0 0 1-1.53-5.27c0-5.45 4.43-9.88 9.89-9.88a9.82 9.82 0 0 1 6.98 2.9 9.82 9.82 0 0 1 2.9 6.99c0 5.44-4.44 9.88-9.89 9.88Zm5.42-7.4c-.3-.15-1.77-.87-2.04-.97-.28-.1-.48-.15-.68.15-.2.3-.77.97-.94 1.17-.18.2-.35.22-.65.07-.3-.15-1.27-.47-2.41-1.49a9.05 9.05 0 0 1-1.67-2.08c-.18-.3-.02-.46.13-.61.13-.13.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.38-.03-.53-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.68-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.49 0 1.47 1.07 2.89 1.22 3.09.15.2 2.1 3.2 5.09 4.49.71.31 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35Z" /></svg>
       </a>
