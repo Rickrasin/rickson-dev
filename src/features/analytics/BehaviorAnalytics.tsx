@@ -57,7 +57,9 @@ export function BehaviorAnalytics() {
       </details>
     </section>
     {ready && choice === "unknown" && <aside className={styles.banner} data-variant={variant} aria-label="Permissão para análise de navegação">
-      <p>Posso usar o PostHog para entender cliques e rolagem e reproduzir a navegação com textos e campos mascarados?</p>
+      <p>{pathname === "/tray"
+        ? "Posso analisar como você usa esta página para melhorá-la? Textos e dados digitados ficam ocultos nas gravações."
+        : "Posso usar o PostHog para entender cliques e rolagem e reproduzir a navegação com textos e campos mascarados?"}</p>
       <a href="#privacidade" onClick={() => document.querySelector<HTMLDetailsElement>("#privacidade details")?.setAttribute("open", "")}>Privacidade e preferências</a>
       <div className={styles.actions}><button type="button" onClick={() => choose("accepted")}>Permitir</button><button type="button" onClick={() => choose("declined")}>Recusar</button></div>
     </aside>}
